@@ -1,0 +1,1 @@
+ALTER TABLE public.gateway_config ADD COLUMN ironpay_api_token TEXT DEFAULT NULL;
