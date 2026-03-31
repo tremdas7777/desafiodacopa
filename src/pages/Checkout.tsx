@@ -34,6 +34,10 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const prefilledName = searchParams.get('nome') || '';
   const prefilledCpf = searchParams.get('cpf') || '';
+  const shirtColor = searchParams.get('cor') || 'amarela';
+  const shirtSize = searchParams.get('tamanho') || '';
+  const camisaImg = shirtColor === 'azul' ? camisaAzulImg : camisaAmarelaImg;
+  const colorLabel = shirtColor === 'azul' ? '(Azul)' : '(Amarela)';
 
   const [currentStep, setCurrentStep] = useState(1);
   const [nome, setNome] = useState(prefilledName);
