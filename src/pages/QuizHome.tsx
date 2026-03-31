@@ -503,7 +503,7 @@ export default function QuizHome() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
             {/* Camisa */}
-            <Card className={`overflow-hidden border shadow-sm hover:shadow-md transition-shadow ${showSelectionError && (!selectedSize || !selectedColor) ? 'border-destructive' : 'border-border'}`}>
+            <Card data-shirt-card className={`overflow-hidden border shadow-sm hover:shadow-md transition-shadow ${showSelectionError && (!selectedSize || !selectedColor) ? 'border-destructive' : 'border-border'}`}>
               <div className="relative bg-secondary p-6 flex items-center justify-center h-56">
                 <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">
                   Exclusivo
