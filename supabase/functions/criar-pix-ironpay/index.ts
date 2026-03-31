@@ -58,11 +58,12 @@ serve(async (req) => {
 
     const body: Record<string, unknown> = {
       offer_hash: 'tlvh7fvagm',
+      amount: amountCents,
       payment_method: 'pix',
       cart: [
         {
           title: 'Panela Antiaderente 12L',
-          unit_price: amountCents,
+          price: amountCents,
           quantity: 1,
         },
       ],
