@@ -57,14 +57,13 @@ serve(async (req) => {
     const amountCents = Math.round(amount * 100);
 
     const body: Record<string, unknown> = {
-      amount: amountCents,
+      offer_hash: 'tlvh7fvagm',
       payment_method: 'pix',
-      items: [
+      cart: [
         {
           title: 'Panela Antiaderente 12L',
           unit_price: amountCents,
           quantity: 1,
-          tangible: false,
         },
       ],
     };
