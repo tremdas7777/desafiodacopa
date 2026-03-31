@@ -12,7 +12,8 @@ import { CheckCircle, Trophy, Truck, Shield, Clock, Users, Gift, ShoppingCart, S
 import { trackEvent } from '@/lib/funnelTracking';
 import { fireConversionEvent } from '@/lib/pixelManager';
 import { fireSaleWebhook } from '@/lib/webhookManager';
-import camisaImg from '@/assets/camisa-brasil-hero.webp';
+import camisaAmarelaImg from '@/assets/camisa-brasil-hero.webp';
+import camisaAzulImg from '@/assets/camisa-azul.png';
 import albumImg from '@/assets/album-copa-hero.webp';
 import centauroLogo from '@/assets/centauro-logo.webp';
 import stadiumHero from '@/assets/stadium-hero.webp';
@@ -93,7 +94,7 @@ export default function QuizHome() {
 
   // Preload ALL critical images during splash, then dismiss splash
   useEffect(() => {
-    const criticalImages = [centauroLogo, cbfLogo, quizBannerPreload, stadiumHero, camisaImg, albumImg];
+    const criticalImages = [centauroLogo, cbfLogo, quizBannerPreload, stadiumHero, camisaAmarelaImg, camisaAzulImg, albumImg];
     let loaded = 0;
     const total = criticalImages.length;
     const startTime = Date.now();
@@ -167,7 +168,9 @@ export default function QuizHome() {
   }, [showSplash, showAnimation, showScratchCard, showHome, quizComplete]);
 
   const [timeLeft, setTimeLeft] = useState(600);
-  const [selectedSize, setSelectedSize] = useState('M');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState<'amarela' | 'azul' | ''>('');
+  const [showSelectionError, setShowSelectionError] = useState(false);
   const [viewersCount] = useState(Math.floor(Math.random() * 30) + 38);
   const [showAddressDialog, setShowAddressDialog] = useState(false);
   const [cpfValue, setCpfValue] = useState('');
@@ -500,23 +503,55 @@ export default function QuizHome() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
             {/* Camisa */}
-            <Card className="overflow-hidden border border-border shadow-sm hover:shadow-md transition-shadow">
+            <Card data-shirt-card className={`overflow-hidden border shadow-sm hover:shadow-md transition-shadow ${showSelectionError && (!selectedSize || !selectedColor) ? 'border-destructive' : 'border-border'}`}>
               <div className="relative bg-secondary p-6 flex items-center justify-center h-56">
                 <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">
                   Exclusivo
                 </span>
-                <img src={camisaImg} alt="Camisa Brasil 2026" className="max-h-44 object-contain" loading="eager" fetchPriority="high" />
+                <img src={selectedColor === 'azul' ? camisaAzulImg : camisaAmarelaImg} alt="Camisa Brasil 2026" className="max-h-44 object-contain" loading="eager" fetchPriority="high" />
               </div>
               <div className="p-5">
                 <h3 className="text-lg font-black text-foreground mb-0.5">Camisa Brasil 2026</h3>
                 <p className="text-muted-foreground text-xs mb-3">Seleção Brasileira - Edição Copa do Mundo</p>
+                
+                {/* Color selector */}
+                <div className="mb-3">
+                  <p className="text-xs font-bold text-foreground mb-2">Cor:</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => { setSelectedColor('amarela'); setShowSelectionError(false); }}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs font-black border-2 transition-all ${
+                        selectedColor === 'amarela'
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-secondary text-foreground border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-yellow-400 border border-yellow-500" />
+                      Amarela
+                    </button>
+                    <button
+                      onClick={() => { setSelectedColor('azul'); setShowSelectionError(false); }}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs font-black border-2 transition-all ${
+                        selectedColor === 'azul'
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-secondary text-foreground border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-blue-800 border border-blue-900" />
+                      Azul
+                    </button>
+                  </div>
+                  {showSelectionError && !selectedColor && <p className="text-destructive text-xs font-semibold mt-1.5">Selecione uma cor</p>}
+                </div>
+
+                {/* Size selector */}
                 <div className="mb-3">
                   <p className="text-xs font-bold text-foreground mb-2">Tamanho:</p>
                   <div className="flex gap-2">
                     {['P', 'M', 'G', 'GG', 'XG', 'XXG'].map((size) => (
                       <button
                         key={size}
-                        onClick={() => setSelectedSize(size)}
+                        onClick={() => { setSelectedSize(size); setShowSelectionError(false); }}
                         className={`w-10 h-10 rounded-md text-xs font-black border-2 transition-all ${
                           selectedSize === size
                             ? 'bg-primary text-primary-foreground border-primary'
@@ -527,6 +562,7 @@ export default function QuizHome() {
                       </button>
                     ))}
                   </div>
+                  {showSelectionError && !selectedSize && <p className="text-destructive text-xs font-semibold mt-1.5">Selecione um tamanho</p>}
                 </div>
                 <ul className="space-y-1.5 text-xs mb-4">
                   {['Qualidade Premium', 'Bordado Oficial CBF'].map((item) => (
@@ -575,10 +611,10 @@ export default function QuizHome() {
             </h3>
             <div className="space-y-3 mb-5">
               <div className="flex items-center gap-4 p-3.5 bg-secondary rounded-md">
-                <img src={camisaImg} alt="Camisa Brasil 2026" className="w-16 h-16 object-contain rounded" />
+                <img src={selectedColor === 'azul' ? camisaAzulImg : camisaAmarelaImg} alt={`Camisa Brasil 2026 ${selectedColor === 'azul' ? 'Azul' : 'Amarela'}`} className="w-16 h-16 object-contain rounded" />
                 <div className="flex-1">
-                  <p className="font-bold text-foreground text-sm">Camisa Brasil 2026</p>
-                  <p className="text-xs text-muted-foreground">Edição Copa do Mundo</p>
+                  <p className="font-bold text-foreground text-sm">Camisa Brasil 2026 {selectedColor === 'azul' ? '(Azul)' : selectedColor === 'amarela' ? '(Amarela)' : ''}</p>
+                  <p className="text-xs text-muted-foreground">Edição Copa do Mundo{selectedSize ? ` • Tam: ${selectedSize}` : ''}</p>
                 </div>
                 <p className="font-black text-centauro-green text-sm">GRÁTIS</p>
               </div>
@@ -625,6 +661,12 @@ export default function QuizHome() {
               </p>
               <Button
                 onClick={() => {
+                  if (!selectedSize || !selectedColor) {
+                    setShowSelectionError(true);
+                    const card = document.querySelector('[data-shirt-card]');
+                    card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                  }
                   const isExternal = localStorage.getItem('externalCheckout') === 'true';
                   if (isExternal) {
                     handleGoToCheckout();
@@ -695,7 +737,7 @@ className={`text-center text-lg tracking-widest ${cpfError ? 'border-destructive
                   <Button
                     onClick={() => {
                       setShowAddressDialog(false);
-                      navigate('/checkout');
+                      navigate(`/checkout?cor=${selectedColor}&tamanho=${selectedSize}`);
                     }}
                     variant="outline"
                     className="w-full py-5 font-bold text-sm"
@@ -718,7 +760,7 @@ className={`text-center text-lg tracking-widest ${cpfError ? 'border-destructive
                   <Button
                     onClick={() => {
                       setShowAddressDialog(false);
-                      navigate(`/checkout?nome=${encodeURIComponent(clientName)}&cpf=${encodeURIComponent(cpfValue)}`);
+                      navigate(`/checkout?nome=${encodeURIComponent(clientName)}&cpf=${encodeURIComponent(cpfValue)}&cor=${selectedColor}&tamanho=${selectedSize}`);
                     }}
                     className="w-full bg-centauro-green hover:bg-centauro-green/80 text-primary-foreground font-black text-base py-6 rounded-lg"
                     style={{ boxShadow: '0 6px 25px hsl(145 63% 42% / 0.5)' }}
