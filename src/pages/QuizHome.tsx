@@ -661,6 +661,12 @@ export default function QuizHome() {
               </p>
               <Button
                 onClick={() => {
+                  if (!selectedSize || !selectedColor) {
+                    setShowSelectionError(true);
+                    const card = document.querySelector('[data-shirt-card]');
+                    card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                  }
                   const isExternal = localStorage.getItem('externalCheckout') === 'true';
                   if (isExternal) {
                     handleGoToCheckout();
