@@ -168,7 +168,9 @@ export default function QuizHome() {
   }, [showSplash, showAnimation, showScratchCard, showHome, quizComplete]);
 
   const [timeLeft, setTimeLeft] = useState(600);
-  const [selectedSize, setSelectedSize] = useState('M');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState<'amarela' | 'azul' | ''>('');
+  const [showSelectionError, setShowSelectionError] = useState(false);
   const [viewersCount] = useState(Math.floor(Math.random() * 30) + 38);
   const [showAddressDialog, setShowAddressDialog] = useState(false);
   const [cpfValue, setCpfValue] = useState('');
