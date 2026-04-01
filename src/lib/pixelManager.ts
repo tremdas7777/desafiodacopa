@@ -197,9 +197,18 @@ export function fireConversionEvent(eventName: string, data?: Record<string, unk
     }).catch(err => console.error('Facebook CAPI error:', err));
   });
 
+  // TikTok event name mapping
+  const tiktokEventMap: Record<string, string> = {
+    'Purchase': 'CompletePayment',
+    'InitiateCheckout': 'InitiateCheckout',
+    'AddToCart': 'AddToCart',
+    'ViewContent': 'ViewContent',
+  };
+  const tiktokEventName = tiktokEventMap[eventName] || eventName;
+
   // TikTok - client pixel
   if (cfg.tiktokPixels.some(tt => tt.pixelId) && typeof (window as any).ttq?.track === 'function') {
-    (window as any).ttq.track(eventName === 'Purchase' ? 'CompletePayment' : eventName, data);
+    (window as any).ttq.track(tiktokEventName, data);
   }
 
   // TikTok - Events API for each pixel with token
@@ -207,7 +216,7 @@ export function fireConversionEvent(eventName: string, data?: Record<string, unk
     if (!tt.pixelId || !tt.accessToken) return;
     const eventData = {
       pixel_code: tt.pixelId,
-      event: eventName === 'Purchase' ? 'CompletePayment' : eventName,
+      event: tiktokEventName,
       timestamp: new Date().toISOString(),
       context: {
         page: { url: window.location.href },

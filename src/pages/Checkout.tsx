@@ -200,7 +200,7 @@ export default function Checkout() {
       return;
     }
 
-    trackEvent('checkout');
+    trackEvent('purchase');
     fireConversionEvent('Purchase', { value: 44.90, currency: 'BRL' });
 
     const gatewayConfig = await fetchPaymentGatewayConfig();

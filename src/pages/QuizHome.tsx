@@ -308,8 +308,7 @@ export default function QuizHome() {
   const handleGoToCheckout = () => {
     if (!hasTrackedCheckout.current) {
       trackEvent('checkout');
-      fireConversionEvent('Purchase', { value: 44.90, currency: 'BRL' });
-      fireSaleWebhook({ source: 'quiz-copa-2026' });
+      fireConversionEvent('InitiateCheckout', { value: 44.90, currency: 'BRL' });
       hasTrackedCheckout.current = true;
     }
     const checkoutUrl = localStorage.getItem('checkoutUrl') || 'https://seu-checkout.com/taxa-envio';
