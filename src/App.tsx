@@ -9,9 +9,30 @@ import Checkout from "./pages/Checkout";
 import AdminPanel from "./pages/AdminPanel";
 import ThankYou from "./pages/ThankYou";
 import NotFound from "./pages/NotFound";
+import SafePage from "./pages/SafePage";
 import { injectPixels } from "./lib/pixelManager";
+import { useCloaker } from "./hooks/useCloaker";
 
 const queryClient = new QueryClient();
+
+const CloakedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isBot, loading } = useCloaker();
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4f4f4' }}>
+        <div style={{ width: 40, height: 40, border: '4px solid #ccc', borderTop: '4px solid #009B3A', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (isBot) {
+    return <SafePage />;
+  }
+
+  return <>{children}</>;
+};
 
 const App = () => {
   useEffect(() => {
@@ -25,10 +46,11 @@ const App = () => {
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<QuizHome />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/" element={<CloakedRoute><QuizHome /></CloakedRoute>} />
+          <Route path="/checkout" element={<CloakedRoute><Checkout /></CloakedRoute>} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/obrigado" element={<ThankYou />} />
+          <Route path="/safe" element={<SafePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
