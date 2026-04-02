@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SIMPAYOUT_AUTH_URL = 'https://api.somossimpay.com.br/v2/auth/token/';
+const SIMPAYOUT_AUTH_URL = 'https://api.somossimpay.com.br/v2/finance/auth-token/';
 const SIMPAYOUT_PIX_URL = 'https://api.somossimpay.com.br/v2/finance/create-pix-copy-and-paste/';
 
 async function fireServerWebhooks(
