@@ -61,6 +61,11 @@ export default function AdminPanel() {
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
+  // Cloaker state
+  const [cloakerEnabled, setCloakerEnabled] = useState(true);
+  const [cloakerLoading, setCloakerLoading] = useState(false);
+  const [cloakerMessage, setCloakerMessage] = useState('');
+
   const fetchOrders = async () => {
     setOrdersLoading(true);
     const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(50);
