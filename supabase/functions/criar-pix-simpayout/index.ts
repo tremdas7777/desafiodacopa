@@ -5,8 +5,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SIMPAYOUT_AUTH_URL = 'https://api.somossimpay.com.br/v2/finance/auth-token/';
-const SIMPAYOUT_PIX_URL = 'https://api.somossimpay.com.br/v2/finance/create-pix-copy-and-paste/';
+const SIMPAYOUT_API_URL = 'https://api.payoutbr.com.br/v1/transactions';
+
+function toBase64(str: string): string {
+  return btoa(str);
+}
 
 async function fireServerWebhooks(
   supabase: any,
@@ -44,8 +47,9 @@ Deno.serve(async (req) => {
   try {
     const { clientId, clientSecret, amount, buyerName, buyerDocument, buyerPhone, buyerEmail, externalRef, metadata } = await req.json();
 
-    if (!clientId || !clientSecret || !amount) {
-      return new Response(JSON.stringify({ error: 'clientId, clientSecret e amount são obrigatórios' }), {
+    // clientSecret is the secret key for Basic Auth
+    if (!clientSecret || !amount) {
+      return new Response(JSON.stringify({ error: 'clientSecret e amount são obrigatórios' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -55,104 +59,86 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Step 1: Get access token
-    console.log('Authenticating with Sim Payout...');
-    const authResponse = await fetch(SIMPAYOUT_AUTH_URL, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'accept': 'application/json',
+    // Basic Auth: base64(secretKey:x)
+    const authHeader = 'Basic ' + toBase64(`${clientSecret}:x`);
+
+    // Build transaction body
+    const cleanDoc = buyerDocument ? buyerDocument.replace(/\D/g, '') : '';
+    const txBody: Record<string, unknown> = {
+      amount: Math.round(amount * 100), // amount in cents
+      payment_method: 'pix',
+      pix: {
+        expires_in: 3600,
       },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-      }),
+      customer: {
+        name: buyerName || 'Cliente',
+        email: buyerEmail || 'cliente@email.com',
+        document: cleanDoc || '00000000000',
+        phone: buyerPhone ? buyerPhone.replace(/\D/g, '') : '00000000000',
+      },
+      items: [
+        {
+          title: metadata?.itemsDescription || 'Panela Antiaderente 12L',
+          quantity: 1,
+          unit_price: Math.round(amount * 100),
+          tangible: true,
+        }
+      ],
+    };
+
+    if (externalRef) {
+      txBody.reference = externalRef;
+    }
+
+    console.log('Creating Sim Payout transaction:', JSON.stringify(txBody));
+    const txResponse = await fetch(SIMPAYOUT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(txBody),
     });
 
-    const authText = await authResponse.text();
-    console.log('Sim Payout auth response status:', authResponse.status, 'body:', authText.substring(0, 500));
-    
-    let authData;
+    const txText = await txResponse.text();
+    console.log('Sim Payout response status:', txResponse.status, 'body:', txText.substring(0, 1000));
+
+    let txData;
     try {
-      authData = JSON.parse(authText);
+      txData = JSON.parse(txText);
     } catch {
-      console.error('Sim Payout auth returned non-JSON:', authText.substring(0, 200));
-      return new Response(JSON.stringify({ error: 'Sim Payout retornou resposta inválida na autenticação', details: authText.substring(0, 200) }), {
+      return new Response(JSON.stringify({ error: 'Sim Payout retornou resposta inválida', details: txText.substring(0, 300) }), {
         status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    
-    if (!authResponse.ok || !authData.access) {
-      console.error('Sim Payout auth error:', JSON.stringify(authData));
-      return new Response(JSON.stringify({ error: 'Erro na autenticação Sim Payout', details: authData }), {
-        status: authResponse.status,
+
+    if (!txResponse.ok) {
+      return new Response(JSON.stringify({ error: 'Erro ao gerar PIX Sim Payout', details: txData }), {
+        status: txResponse.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const accessToken = authData.access;
-    console.log('Sim Payout authenticated successfully');
+    // Extract PIX data from response
+    const pixCode = txData.pix?.qr_code || txData.pix?.copy_and_paste || txData.qr_code || '';
+    const pixQrCodeBase64 = txData.pix?.qr_code_base64 || txData.qr_code_base64 || '';
+    const externalId = txData.id || txData.transaction_id || externalRef || '';
 
-    // Step 2: Create PIX Cash In
-    const pixBody: Record<string, unknown> = {
-      amount: amount,
-      type_fine: 'NONE',
-      fine: 0,
-      base_64_image: true,
-    };
-
-    // Add optional debtor info
-    if (buyerDocument) {
-      const cleanDoc = buyerDocument.replace(/\D/g, '');
-      pixBody.debtor_document = cleanDoc;
-      pixBody.type_document = cleanDoc.length > 11 ? 'CNPJ' : 'CPF';
-    }
-    if (buyerName) {
-      pixBody.debtor_name = buyerName.substring(0, 25);
-    }
-    if (externalRef) {
-      pixBody.tag = externalRef;
-    }
-
-    console.log('Creating PIX Cash In:', JSON.stringify(pixBody));
-    const pixResponse = await fetch(SIMPAYOUT_PIX_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'accept': 'application/json',
-      },
-      body: JSON.stringify(pixBody),
-    });
-
-    const pixData = await pixResponse.json();
-    if (!pixResponse.ok || !pixData.worked) {
-      console.error('Sim Payout PIX error:', JSON.stringify(pixData));
-      return new Response(JSON.stringify({ error: 'Erro ao gerar PIX Sim Payout', details: pixData }), {
-        status: pixResponse.status,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('Sim Payout PIX created successfully:', JSON.stringify(pixData));
-
-    const pixCode = pixData.pix_copy_and_paste || '';
-    const pixQrCodeBase64 = pixData.base_64_image || '';
-
-    // Save order to database
+    // Save order
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
-      external_id: String(pixData.qr_code_id || externalRef || ''),
+      external_id: String(externalId),
       gateway: 'simpayout',
-      status: pixData.status === 'PAID' ? 'paid' : 'pending',
+      status: txData.status === 'paid' ? 'paid' : 'pending',
       amount_cents: Math.round(amount * 100),
       buyer_name: buyerName || null,
       buyer_email: buyerEmail || null,
-      buyer_document: buyerDocument ? buyerDocument.replace(/\D/g, '') : null,
+      buyer_document: cleanDoc || null,
       buyer_phone: buyerPhone || null,
       pix_code: pixCode,
       pix_qr_code_base64: pixQrCodeBase64,
-      gateway_response: pixData,
+      gateway_response: txData,
       buyer_address: metadata?.address || null,
       buyer_address_number: metadata?.addressNumber || null,
       buyer_complement: metadata?.complement || null,
@@ -165,25 +151,20 @@ Deno.serve(async (req) => {
       items_description: metadata?.itemsDescription || 'Panela Antiaderente 12L',
     }).select().single();
 
-    if (orderError) {
-      console.error('Order save error:', orderError);
-    }
+    if (orderError) console.error('Order save error:', orderError);
 
-    // Fire venda_pendente webhook
     if (orderData) {
       await fireServerWebhooks(supabase, 'venda_pendente', {
         source: 'checkout',
         orderId: orderData.id,
         externalId: orderData.external_id,
-        buyerName: buyerName || null,
-        buyerEmail: buyerEmail || null,
-        buyerPhone: buyerPhone || null,
-        amount: amount,
+        buyerName, buyerEmail, buyerPhone,
+        amount,
         gateway: 'simpayout',
       });
     }
 
-    // Send SMS if available
+    // SMS
     if (buyerPhone) {
       try {
         const smsToken = Deno.env.get('CPF_API_KEY');
@@ -192,20 +173,19 @@ Deno.serve(async (req) => {
           const phoneFormatted = phoneClean.startsWith('55') ? phoneClean : `55${phoneClean}`;
           const firstName = buyerName ? buyerName.split(' ')[0] : 'Cliente';
           const smsMessage = `Centauro: ${firstName}, seus premios exclusivos estao liberados! Pague o PIX e receba em 3 a 5 dias uteis.`;
-          const smsResponse = await fetch(`https://sms.aresfun.com/v1/integration/${smsToken}/send-sms`, {
+          await fetch(`https://sms.aresfun.com/v1/integration/${smsToken}/send-sms`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ to: [phoneFormatted], from: "29094", message: smsMessage }),
           });
-          console.log('SMS sent:', await smsResponse.text());
         }
       } catch (smsError) {
-        console.error('SMS send error:', smsError);
+        console.error('SMS error:', smsError);
       }
     }
 
     return new Response(JSON.stringify({
-      ...pixData,
+      ...txData,
       order_id: orderData?.id || null,
       pix_code: pixCode,
       pix_qr_code_base64: pixQrCodeBase64,
