@@ -23,12 +23,19 @@ export interface IronPayConfig {
   enabled: boolean;
 }
 
+export interface SimPayoutConfig {
+  clientId: string;
+  clientSecret: string;
+  enabled: boolean;
+}
+
 export interface PaymentGatewayConfig {
-  activeGateway: 'pagouai' | 'vennox' | 'centurionpay' | 'ironpay';
+  activeGateway: 'pagouai' | 'vennox' | 'centurionpay' | 'ironpay' | 'simpayout';
   pagouai: PagouAiConfig;
   vennox: VennoxConfig;
   centurionpay: CenturionPayConfig;
   ironpay: IronPayConfig;
+  simpayout: SimPayoutConfig;
 }
 
 const defaultConfig: PaymentGatewayConfig = {
@@ -37,6 +44,7 @@ const defaultConfig: PaymentGatewayConfig = {
   vennox: { secretKey: '', companyId: '', enabled: false },
   centurionpay: { secretKey: '', companyId: '', enabled: false },
   ironpay: { apiToken: '', enabled: false },
+  simpayout: { clientId: '', clientSecret: '', enabled: false },
 };
 
 // In-memory cache to avoid repeated DB calls within the same page
@@ -60,7 +68,7 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
     }
 
     const config: PaymentGatewayConfig = {
-      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay'].includes(data.active_gateway)
+      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout'].includes(data.active_gateway)
         ? data.active_gateway
         : 'centurionpay') as PaymentGatewayConfig['activeGateway'],
       pagouai: {
@@ -81,6 +89,11 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
       ironpay: {
         apiToken: (data as any).ironpay_api_token || '',
         enabled: !!((data as any).ironpay_api_token),
+      },
+      simpayout: {
+        clientId: (data as any).simpayout_client_id || '',
+        clientSecret: (data as any).simpayout_client_secret || '',
+        enabled: !!((data as any).simpayout_client_id && (data as any).simpayout_client_secret),
       },
     };
 
@@ -110,6 +123,8 @@ export async function savePaymentGatewayConfig(config: PaymentGatewayConfig): Pr
       centurionpay_secret_key: config.centurionpay.secretKey,
       centurionpay_company_id: config.centurionpay.companyId,
       ironpay_api_token: config.ironpay.apiToken,
+      simpayout_client_id: config.simpayout.clientId,
+      simpayout_client_secret: config.simpayout.clientSecret,
       updated_at: new Date().toISOString(),
     };
 
