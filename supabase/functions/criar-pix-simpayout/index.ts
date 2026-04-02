@@ -65,10 +65,10 @@ Deno.serve(async (req) => {
     // Build transaction body
     const cleanDoc = buyerDocument ? buyerDocument.replace(/\D/g, '') : '';
     const txBody: Record<string, unknown> = {
-      amount: Math.round(amount * 100), // amount in cents
-      payment_method: 'pix',
+      amount: Math.round(amount * 100),
+      paymentMethod: 'pix',
       pix: {
-        expires_in: 3600,
+        expiresIn: 3600,
       },
       customer: {
         name: buyerName || 'Cliente',
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
         {
           title: metadata?.itemsDescription || 'Panela Antiaderente 12L',
           quantity: 1,
-          unit_price: Math.round(amount * 100),
+          unitPrice: Math.round(amount * 100),
           tangible: true,
         }
       ],
