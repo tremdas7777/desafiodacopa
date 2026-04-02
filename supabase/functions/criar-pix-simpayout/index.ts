@@ -124,10 +124,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Extract PIX data from response
-    const pixCode = txData.pix?.qr_code || txData.pix?.copy_and_paste || txData.qr_code || '';
-    const pixQrCodeBase64 = txData.pix?.qr_code_base64 || txData.qr_code_base64 || '';
-    const externalId = txData.id || txData.transaction_id || externalRef || '';
+    // Extract PIX data from response - field is pix.qrcode
+    const pixCode = txData.pix?.qrcode || txData.pix?.qr_code || '';
+    const pixQrCodeBase64 = txData.pix?.qr_code_base64 || '';
+    const externalId = String(txData.id || externalRef || '');
 
     // Save order
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
