@@ -1040,6 +1040,62 @@ export default function AdminPanel() {
               </div>
             </Card>
 
+            {/* Sim Payout Config */}
+            <Card className="p-5 border border-border mt-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <CreditCard size={20} className="text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-black text-foreground text-sm">Sim Payout</h3>
+                  <p className="text-muted-foreground text-[11px]">SimPay - Gateway PIX</p>
+                </div>
+                {gatewayConfig.activeGateway === 'simpayout' && (
+                  <Badge className="bg-centauro-green/10 text-centauro-green border-centauro-green/30 text-[10px]">Ativo</Badge>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Chave Pública (Client ID)</label>
+                  <Input
+                    type="text"
+                    value={gatewayConfig.simpayout.clientId}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      simpayout: { ...prev.simpayout, clientId: e.target.value }
+                    }))}
+                    placeholder="pk_live_..."
+                    className="font-mono text-xs mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Chave Secreta (Client Secret)</label>
+                  <Input
+                    type="password"
+                    value={gatewayConfig.simpayout.clientSecret}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      simpayout: { ...prev.simpayout, clientSecret: e.target.value }
+                    }))}
+                    placeholder="sk_live_..."
+                    className="font-mono text-xs mt-1"
+                  />
+                </div>
+
+                <Button
+                  onClick={async () => {
+                    await savePaymentGatewayConfig(gatewayConfig);
+                    setGatewayMessage('Configuração da Sim Payout salva com sucesso!');
+                    setTimeout(() => setGatewayMessage(''), 3000);
+                  }}
+                  className="w-full bg-centauro-green hover:bg-centauro-green/90 text-primary-foreground font-bold text-xs"
+                >
+                  <Save size={14} className="mr-1.5" /> Salvar Sim Payout
+                </Button>
+              </div>
+            </Card>
+
             <div className="bg-centauro-gold/10 p-3.5 rounded-md border border-centauro-gold/20 mt-4">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Info size={13} className="text-centauro-gold" />
@@ -1053,6 +1109,7 @@ export default function AdminPanel() {
                 <li><strong>Vennox:</strong> Secret Key + Company ID (autenticação Basic)</li>
                 <li><strong>Centurion Pay:</strong> Company ID + Secret Key (autenticação Basic)</li>
                 <li><strong>Iron Pay:</strong> Token da API Pública (api_token)</li>
+                <li><strong>Sim Payout:</strong> Client ID (chave pública) + Client Secret (chave secreta)</li>
               </ul>
             </div>
           </div>
