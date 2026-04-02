@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      funnel_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          session_id?: string | null
+        }
+        Relationships: []
+      }
       gateway_config: {
         Row: {
           active_gateway: string
