@@ -62,6 +62,8 @@ export type Database = {
           ironpay_api_token: string | null
           pagouai_public_key: string | null
           pagouai_secret_key: string | null
+          simpayout_client_id: string | null
+          simpayout_client_secret: string | null
           updated_at: string | null
           vennox_company_id: string | null
           vennox_secret_key: string | null
@@ -74,6 +76,8 @@ export type Database = {
           ironpay_api_token?: string | null
           pagouai_public_key?: string | null
           pagouai_secret_key?: string | null
+          simpayout_client_id?: string | null
+          simpayout_client_secret?: string | null
           updated_at?: string | null
           vennox_company_id?: string | null
           vennox_secret_key?: string | null
@@ -86,6 +90,8 @@ export type Database = {
           ironpay_api_token?: string | null
           pagouai_public_key?: string | null
           pagouai_secret_key?: string | null
+          simpayout_client_id?: string | null
+          simpayout_client_secret?: string | null
           updated_at?: string | null
           vennox_company_id?: string | null
           vennox_secret_key?: string | null
