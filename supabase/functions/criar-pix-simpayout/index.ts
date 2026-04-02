@@ -73,7 +73,10 @@ Deno.serve(async (req) => {
       customer: {
         name: buyerName || 'Cliente',
         email: buyerEmail || 'cliente@email.com',
-        document: cleanDoc || '00000000000',
+        document: {
+          type: cleanDoc.length > 11 ? 'cnpj' : 'cpf',
+          number: cleanDoc || '00000000000',
+        },
         phone: buyerPhone ? buyerPhone.replace(/\D/g, '') : '00000000000',
       },
       items: [
