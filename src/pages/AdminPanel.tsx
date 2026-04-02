@@ -18,7 +18,7 @@ import AdminLeads from '@/components/AdminLeads';
 
 const ADMIN_PASSWORD = 'escalabahia';
 
-type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos';
+type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
 export default function AdminPanel() {
   const [password, setPassword] = useState('');
