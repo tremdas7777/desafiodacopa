@@ -117,7 +117,7 @@ export default function AdminPanel() {
     } catch { setMessage('Erro ao salvar!'); }
   };
 
-  const handleClearStats = () => { clearFunnelEvents(); setStats(getFunnelStats(period)); };
+  const handleClearStats = async () => { await clearFunnelEvents(); const s = await getFunnelStats(period); setStats(s); };
 
   const handleSavePixels = () => {
     savePixelConfig(pixelConfig);
