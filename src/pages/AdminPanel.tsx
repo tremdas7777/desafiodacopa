@@ -84,6 +84,10 @@ export default function AdminPanel() {
     });
     setUtmifyConfig(getUtmifyConfig());
     fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
+    // Load cloaker config
+    supabase.from('cloaker_config').select('enabled').limit(1).single().then(({ data }) => {
+      if (data) setCloakerEnabled(data.enabled);
+    });
   }, []);
 
   useEffect(() => {
