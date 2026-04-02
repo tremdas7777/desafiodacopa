@@ -8,6 +8,20 @@ export const useCloaker = () => {
   useEffect(() => {
     const checkCloaker = async () => {
       try {
+        // First check if cloaker is enabled
+        const { data: config } = await supabase
+          .from('cloaker_config')
+          .select('enabled')
+          .limit(1)
+          .single();
+
+        if (!config?.enabled) {
+          // Cloaker disabled, show real page to everyone
+          setIsBot(false);
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke('cloaker-check');
         if (error) {
           console.warn('Cloaker check failed, showing real page:', error);
