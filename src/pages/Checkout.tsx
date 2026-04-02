@@ -378,8 +378,38 @@ export default function Checkout() {
       } finally {
         setPixLoading(false);
       }
-    }
-  };
+    } else if (activeGateway === 'simpayout') {
+      if (!hasSimPayoutKeys) {
+        setPixError('Gateway Sim Payout não configurado. Configure as chaves no painel admin.');
+        setTimeout(() => setPixError(''), 5000);
+        return;
+      }
+      setPixLoading(true);
+      setPixError('');
+      try {
+        const { data, error } = await supabase.functions.invoke('criar-pix-simpayout', {
+          body: {
+            clientId: gatewayConfig.simpayout.clientId,
+            clientSecret: gatewayConfig.simpayout.clientSecret,
+            amount: shippingCost || 44.90,
+            buyerName: nome,
+            buyerEmail: email,
+            buyerDocument: cpf,
+            buyerPhone: telefone,
+            metadata: purchaseMetadata,
+          },
+        });
+
+        if (error) throw error;
+
+        setPixCode(data.pix_code || '');
+        setPixQrCodeBase64(data.pix_qr_code_base64 || '');
+        setPixOrderId(data.order_id || '');
+        setShowPixPopup(true);
+      } catch (err: any) {
+        console.error('PIX error:', err);
+        setPixError('Erro ao gerar PIX. Tente novamente.');
+        setTimeout(() => setPixError(''), 5000);
 
   const validateEmail = (value: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
