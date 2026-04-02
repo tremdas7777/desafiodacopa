@@ -210,27 +210,18 @@ export default function Checkout() {
     const hasVennoxKeys = !!gatewayConfig.vennox.secretKey?.trim() && !!gatewayConfig.vennox.companyId?.trim();
     const hasCenturionPayKeys = !!gatewayConfig.centurionpay?.secretKey?.trim() && !!gatewayConfig.centurionpay?.companyId?.trim();
     const hasIronPayKeys = !!gatewayConfig.ironpay?.apiToken?.trim();
+    const hasSimPayoutKeys = !!gatewayConfig.simpayout?.clientId?.trim() && !!gatewayConfig.simpayout?.clientSecret?.trim();
+
+    const allGateways = ['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout'] as const;
+    const hasKeys: Record<string, boolean> = { pagouai: hasPagouaiKeys, vennox: hasVennoxKeys, centurionpay: hasCenturionPayKeys, ironpay: hasIronPayKeys, simpayout: hasSimPayoutKeys };
 
     // If active gateway isn't configured, fall back to one that is
-    if (activeGateway === 'pagouai' && !hasPagouaiKeys) {
-      if (hasCenturionPayKeys) activeGateway = 'centurionpay';
-      else if (hasVennoxKeys) activeGateway = 'vennox';
-      else if (hasIronPayKeys) activeGateway = 'ironpay';
-    } else if (activeGateway === 'vennox' && !hasVennoxKeys) {
-      if (hasCenturionPayKeys) activeGateway = 'centurionpay';
-      else if (hasPagouaiKeys) activeGateway = 'pagouai';
-      else if (hasIronPayKeys) activeGateway = 'ironpay';
-    } else if (activeGateway === 'centurionpay' && !hasCenturionPayKeys) {
-      if (hasPagouaiKeys) activeGateway = 'pagouai';
-      else if (hasVennoxKeys) activeGateway = 'vennox';
-      else if (hasIronPayKeys) activeGateway = 'ironpay';
-    } else if (activeGateway === 'ironpay' && !hasIronPayKeys) {
-      if (hasCenturionPayKeys) activeGateway = 'centurionpay';
-      else if (hasPagouaiKeys) activeGateway = 'pagouai';
-      else if (hasVennoxKeys) activeGateway = 'vennox';
+    if (!hasKeys[activeGateway]) {
+      const fallback = allGateways.find(gw => gw !== activeGateway && hasKeys[gw]);
+      if (fallback) activeGateway = fallback;
     }
 
-    console.log('Gateway config:', JSON.stringify({ activeGateway, original: gatewayConfig.activeGateway, pagouaiHasSecret: hasPagouaiKeys, vennoxHasSecret: hasVennoxKeys, centurionpayHasSecret: hasCenturionPayKeys, ironpayHasToken: hasIronPayKeys }));
+    console.log('Gateway config:', JSON.stringify({ activeGateway, original: gatewayConfig.activeGateway, pagouaiHasSecret: hasPagouaiKeys, vennoxHasSecret: hasVennoxKeys, centurionpayHasSecret: hasCenturionPayKeys, ironpayHasToken: hasIronPayKeys, simpayoutHasKeys: hasSimPayoutKeys }));
 
     const purchaseMetadata = {
       address: endereco,
