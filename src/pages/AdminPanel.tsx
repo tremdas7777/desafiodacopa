@@ -83,7 +83,10 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const refresh = () => setStats(getFunnelStats(period));
+    const refresh = async () => {
+      const s = await getFunnelStats(period);
+      setStats(s);
+    };
     refresh();
     const interval = setInterval(refresh, 30000);
     return () => clearInterval(interval);
@@ -114,7 +117,7 @@ export default function AdminPanel() {
     } catch { setMessage('Erro ao salvar!'); }
   };
 
-  const handleClearStats = () => { clearFunnelEvents(); setStats(getFunnelStats(period)); };
+  const handleClearStats = async () => { await clearFunnelEvents(); const s = await getFunnelStats(period); setStats(s); };
 
   const handleSavePixels = () => {
     savePixelConfig(pixelConfig);
