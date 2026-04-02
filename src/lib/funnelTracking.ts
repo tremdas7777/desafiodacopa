@@ -1,54 +1,58 @@
-// Funnel event tracking using localStorage
+// Funnel event tracking using Supabase database
 // Events: 'visitor' | 'quiz_started' | 'quiz_completed' | 'checkout' | 'purchase'
+
+import { supabase } from '@/integrations/supabase/client';
 
 export type FunnelEvent = 'visitor' | 'quiz_started' | 'quiz_completed' | 'checkout' | 'purchase';
 
-interface FunnelEntry {
-  event: FunnelEvent;
-  timestamp: number;
+const SESSION_KEY = 'funnel_session_id';
+
+function getSessionId(): string {
+  let id = sessionStorage.getItem(SESSION_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    sessionStorage.setItem(SESSION_KEY, id);
+  }
+  return id;
 }
 
-const STORAGE_KEY = 'funnel_events';
-
-function getEvents(): FunnelEntry[] {
+export async function trackEvent(event: FunnelEvent) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
+    await supabase.from('funnel_events').insert({
+      event,
+      session_id: getSessionId(),
+    });
+  } catch (err) {
+    console.warn('Failed to track funnel event:', err);
   }
 }
 
-function saveEvents(events: FunnelEntry[]) {
-  // Keep only last 24h of events to avoid bloating localStorage
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-  const filtered = events.filter(e => e.timestamp > cutoff);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-}
+export async function getFunnelStats(periodMinutes: number) {
+  const cutoff = new Date(Date.now() - periodMinutes * 60 * 1000).toISOString();
+  const activeNowCutoff = new Date(Date.now() - 2 * 60 * 1000).toISOString();
 
-export function trackEvent(event: FunnelEvent) {
-  const events = getEvents();
-  events.push({ event, timestamp: Date.now() });
-  saveEvents(events);
-}
+  const { data, error } = await supabase
+    .from('funnel_events')
+    .select('event, created_at')
+    .gte('created_at', cutoff);
 
-export function getFunnelStats(periodMinutes: number) {
-  const events = getEvents();
-  const cutoff = Date.now() - periodMinutes * 60 * 1000;
-  const filtered = events.filter(e => e.timestamp > cutoff);
+  if (error) {
+    console.warn('Failed to fetch funnel stats:', error);
+    return { visitors: 0, quizStarted: 0, quizCompleted: 0, checkout: 0, activeNow: 0 };
+  }
 
-  const visitors = filtered.filter(e => e.event === 'visitor').length;
-  const quizStarted = filtered.filter(e => e.event === 'quiz_started').length;
-  const quizCompleted = filtered.filter(e => e.event === 'quiz_completed').length;
-  const checkout = filtered.filter(e => e.event === 'checkout').length;
-
-  // Active now = events in last 2 minutes
-  const activeNowCutoff = Date.now() - 2 * 60 * 1000;
-  const activeNow = filtered.filter(e => e.timestamp > activeNowCutoff).length;
+  const events = data || [];
+  const visitors = events.filter(e => e.event === 'visitor').length;
+  const quizStarted = events.filter(e => e.event === 'quiz_started').length;
+  const quizCompleted = events.filter(e => e.event === 'quiz_completed').length;
+  const checkout = events.filter(e => e.event === 'checkout').length;
+  const activeNow = events.filter(e => e.created_at >= activeNowCutoff).length;
 
   return { visitors, quizStarted, quizCompleted, checkout, activeNow };
 }
 
-export function clearFunnelEvents() {
-  localStorage.removeItem(STORAGE_KEY);
+export async function clearFunnelEvents() {
+  // No-op: clearing from DB would require delete policy
+  // Admin can use this as a placeholder
+  console.log('Clear funnel events - data persists in database');
 }
