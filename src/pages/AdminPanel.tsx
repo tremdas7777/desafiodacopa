@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, TrendingUp, Users, CheckCircle, ArrowDown, Trash2, Code, Webhook, Bell, Zap, Loader2, ExternalLink, CreditCard, QrCode, Copy, RefreshCw, Plus, DollarSign } from 'lucide-react';
+import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, TrendingUp, Users, CheckCircle, ArrowDown, Trash2, Code, Webhook, Bell, Zap, Loader2, ExternalLink, CreditCard, QrCode, Copy, RefreshCw, Plus, DollarSign, Shield } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { getFunnelStats, clearFunnelEvents } from '@/lib/funnelTracking';
@@ -18,7 +18,7 @@ import AdminLeads from '@/components/AdminLeads';
 
 const ADMIN_PASSWORD = 'escalabahia';
 
-type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos';
+type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
 export default function AdminPanel() {
   const [password, setPassword] = useState('');
@@ -61,6 +61,11 @@ export default function AdminPanel() {
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
+  // Cloaker state
+  const [cloakerEnabled, setCloakerEnabled] = useState(true);
+  const [cloakerLoading, setCloakerLoading] = useState(false);
+  const [cloakerMessage, setCloakerMessage] = useState('');
+
   const fetchOrders = async () => {
     setOrdersLoading(true);
     const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(50);
@@ -79,6 +84,10 @@ export default function AdminPanel() {
     });
     setUtmifyConfig(getUtmifyConfig());
     fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
+    // Load cloaker config
+    supabase.from('cloaker_config').select('enabled').limit(1).single().then(({ data }) => {
+      if (data) setCloakerEnabled(data.enabled);
+    });
   }, []);
 
   useEffect(() => {
@@ -251,6 +260,7 @@ export default function AdminPanel() {
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
     { id: 'financeiro', label: 'Financeiro', icon: <DollarSign size={14} /> },
     { id: 'leads', label: 'Leads', icon: <Users size={14} /> },
+    { id: 'cloaker', label: 'Cloaker', icon: <Shield size={14} /> },
     { id: 'pixels', label: 'Pixels', icon: <Code size={14} /> },
     { id: 'webhooks', label: 'Webhooks', icon: <Bell size={14} /> },
     { id: 'utmify', label: 'Utmify', icon: <Zap size={14} /> },
@@ -1157,6 +1167,71 @@ export default function AdminPanel() {
           </div>
         )}
 
+
+        {activeTab === 'cloaker' && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-xl font-black text-foreground mb-1">Cloaker</h2>
+              <p className="text-muted-foreground text-xs">Proteção contra bots e revisores do Google Ads</p>
+            </div>
+
+            <Card className="border border-border p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-sm text-foreground">Cloaker Ativado</p>
+                  <p className="text-muted-foreground text-[10px]">
+                    {cloakerEnabled
+                      ? 'Bots e revisores verão a página segura'
+                      : 'Todos os visitantes verão a página real (oferta)'}
+                  </p>
+                </div>
+                <Switch
+                  checked={cloakerEnabled}
+                  disabled={cloakerLoading}
+                  onCheckedChange={async (checked) => {
+                    setCloakerLoading(true);
+                    setCloakerMessage('');
+                    const { error } = await supabase
+                      .from('cloaker_config')
+                      .update({ enabled: checked, updated_at: new Date().toISOString() })
+                      .eq('id', (await supabase.from('cloaker_config').select('id').limit(1).single()).data?.id || '');
+                    if (error) {
+                      setCloakerMessage('Erro ao salvar configuração');
+                    } else {
+                      setCloakerEnabled(checked);
+                      setCloakerMessage(checked ? 'Cloaker ativado com sucesso!' : 'Cloaker desativado com sucesso!');
+                    }
+                    setCloakerLoading(false);
+                    setTimeout(() => setCloakerMessage(''), 3000);
+                  }}
+                />
+              </div>
+
+              <div className="rounded-md border border-border p-3 bg-muted/30 space-y-2">
+                <p className="text-xs font-bold text-foreground flex items-center gap-1.5"><Shield size={14} /> Como funciona</p>
+                <ul className="text-[10px] text-muted-foreground space-y-1 list-disc pl-4">
+                  <li>Detecta bots do Google (AdsBot, Googlebot) pelo User-Agent</li>
+                  <li>Verifica IPs conhecidos da Google</li>
+                  <li>Identifica crawlers e scanners automatizados</li>
+                  <li>Bots são redirecionados para uma página segura (artigo neutro)</li>
+                  <li>Usuários reais acessam normalmente a oferta</li>
+                </ul>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Badge variant={cloakerEnabled ? 'default' : 'secondary'} className={cloakerEnabled ? 'bg-centauro-green text-primary-foreground' : ''}>
+                  {cloakerEnabled ? '🛡️ Protegido' : '⚠️ Desprotegido'}
+                </Badge>
+              </div>
+
+              {cloakerMessage && (
+                <div className={`p-2.5 rounded-md text-center text-xs font-bold border ${cloakerMessage.includes('sucesso') ? 'bg-centauro-green/10 text-centauro-green border-centauro-green/30' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
+                  {cloakerMessage}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
 
         {activeTab === 'checkout' && (
           <div className="space-y-4">

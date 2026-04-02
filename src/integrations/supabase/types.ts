@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      cloaker_config: {
+        Row: {
+          enabled: boolean
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       funnel_events: {
         Row: {
           created_at: string
