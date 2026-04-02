@@ -59,14 +59,30 @@ Deno.serve(async (req) => {
     console.log('Authenticating with Sim Payout...');
     const authResponse = await fetch(SIMPAYOUT_AUTH_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+      },
       body: JSON.stringify({
         client_id: clientId,
         client_secret: clientSecret,
       }),
     });
 
-    const authData = await authResponse.json();
+    const authText = await authResponse.text();
+    console.log('Sim Payout auth response status:', authResponse.status, 'body:', authText.substring(0, 500));
+    
+    let authData;
+    try {
+      authData = JSON.parse(authText);
+    } catch {
+      console.error('Sim Payout auth returned non-JSON:', authText.substring(0, 200));
+      return new Response(JSON.stringify({ error: 'Sim Payout retornou resposta inválida na autenticação', details: authText.substring(0, 200) }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     if (!authResponse.ok || !authData.access) {
       console.error('Sim Payout auth error:', JSON.stringify(authData));
       return new Response(JSON.stringify({ error: 'Erro na autenticação Sim Payout', details: authData }), {
