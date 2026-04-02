@@ -410,6 +410,11 @@ export default function Checkout() {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
         setTimeout(() => setPixError(''), 5000);
+      } finally {
+        setPixLoading(false);
+      }
+    }
+  };
 
   const validateEmail = (value: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
