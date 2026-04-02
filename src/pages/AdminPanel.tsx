@@ -83,7 +83,10 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const refresh = () => setStats(getFunnelStats(period));
+    const refresh = async () => {
+      const s = await getFunnelStats(period);
+      setStats(s);
+    };
     refresh();
     const interval = setInterval(refresh, 30000);
     return () => clearInterval(interval);
