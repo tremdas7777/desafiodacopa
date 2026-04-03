@@ -38,7 +38,7 @@ export async function getFunnelStats(periodMinutes: number) {
 
   if (error) {
     console.warn('Failed to fetch funnel stats:', error);
-    return { visitors: 0, quizStarted: 0, quizCompleted: 0, checkout: 0, activeNow: 0 };
+    return { visitors: 0, quizStarted: 0, quizCompleted: 0, checkout: 0, purchase: 0, activeNow: 0 };
   }
 
   const events = data || [];

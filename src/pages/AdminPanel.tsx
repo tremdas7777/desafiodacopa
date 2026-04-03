@@ -248,13 +248,14 @@ export default function AdminPanel() {
     );
   }
 
-  const globalConversion = pct(stats.checkout, stats.visitors);
+  const globalConversion = pct(stats.purchase, stats.visitors);
 
   const funnelSteps = [
     { icon: <Eye size={20} className="text-primary" />, title: 'Visitantes', description: 'Chegaram à landing page', count: stats.visitors, conversion: null as number | null, dropoff: `${pct(stats.quizStarted, stats.visitors)}% dos visitantes`, progressValue: 100 },
     { icon: <TrendingUp size={20} className="text-centauro-green" />, title: 'Quiz Iniciado', description: 'Clicaram em Começar', count: stats.quizStarted, conversion: pct(stats.quizStarted, stats.visitors), dropoff: `${pct(stats.quizCompleted, stats.quizStarted)}% dos iniciados`, progressValue: stats.visitors > 0 ? (stats.quizStarted / stats.visitors) * 100 : 0 },
     { icon: <CheckCircle size={20} className="text-centauro-gold" />, title: 'Quiz Completado', description: 'Terminaram as 8 perguntas', count: stats.quizCompleted, conversion: pct(stats.quizCompleted, stats.visitors), dropoff: `${pct(stats.checkout, stats.quizCompleted)}% dos completados`, progressValue: stats.visitors > 0 ? (stats.quizCompleted / stats.visitors) * 100 : 0 },
-    { icon: <ShoppingCart size={20} className="text-destructive" />, title: 'Checkout', description: 'Foram para o pagamento', count: stats.checkout, conversion: pct(stats.checkout, stats.visitors), dropoff: null as string | null, progressValue: stats.visitors > 0 ? (stats.checkout / stats.visitors) * 100 : 0 },
+    { icon: <ShoppingCart size={20} className="text-orange-500" />, title: 'Checkout', description: 'Estão no checkout', count: stats.checkout, conversion: pct(stats.checkout, stats.visitors), dropoff: `${pct(stats.purchase, stats.checkout)}% do checkout`, progressValue: stats.visitors > 0 ? (stats.checkout / stats.visitors) * 100 : 0 },
+    { icon: <DollarSign size={20} className="text-destructive" />, title: 'Comprou', description: 'Geraram o PIX', count: stats.purchase, conversion: pct(stats.purchase, stats.visitors), dropoff: null as string | null, progressValue: stats.visitors > 0 ? (stats.purchase / stats.visitors) * 100 : 0 },
   ];
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
