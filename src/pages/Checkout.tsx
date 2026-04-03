@@ -76,7 +76,7 @@ export default function Checkout() {
   const [showFieldErrors, setShowFieldErrors] = useState(false);
 
   const cepValid = cep.replace(/\D/g, '').length === 8 && !!endereco;
-  const shippingCost = shippingMethod === 'sedex' ? 44.90 : shippingMethod === 'retirada' ? 0 : null;
+  const shippingCost = 44.90;
 
   useEffect(() => {
     window.scrollTo(0, 0);
