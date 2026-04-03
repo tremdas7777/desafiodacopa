@@ -46,9 +46,10 @@ export async function getFunnelStats(periodMinutes: number) {
   const quizStarted = events.filter(e => e.event === 'quiz_started').length;
   const quizCompleted = events.filter(e => e.event === 'quiz_completed').length;
   const checkout = events.filter(e => e.event === 'checkout').length;
+  const purchase = events.filter(e => e.event === 'purchase').length;
   const activeNow = events.filter(e => e.created_at >= activeNowCutoff).length;
 
-  return { visitors, quizStarted, quizCompleted, checkout, activeNow };
+  return { visitors, quizStarted, quizCompleted, checkout, purchase, activeNow };
 }
 
 export async function clearFunnelEvents() {
