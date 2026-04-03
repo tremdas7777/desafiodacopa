@@ -370,7 +370,8 @@ export default function AdminPanel() {
                   { etapa: 'Visitantes', valor: stats.visitors, fill: 'hsl(var(--primary))' },
                   { etapa: 'Quiz Início', valor: stats.quizStarted, fill: 'hsl(142, 71%, 45%)' },
                   { etapa: 'Quiz Fim', valor: stats.quizCompleted, fill: 'hsl(45, 93%, 47%)' },
-                  { etapa: 'Checkout', valor: stats.checkout, fill: 'hsl(0, 84%, 60%)' },
+                  { etapa: 'Checkout', valor: stats.checkout, fill: 'hsl(30, 100%, 50%)' },
+                  { etapa: 'Comprou', valor: stats.purchase, fill: 'hsl(0, 84%, 60%)' },
                 ]} layout="vertical" margin={{ left: 10, right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
@@ -381,6 +382,7 @@ export default function AdminPanel() {
                       { fill: 'hsl(var(--primary))' },
                       { fill: 'hsl(142, 71%, 45%)' },
                       { fill: 'hsl(45, 93%, 47%)' },
+                      { fill: 'hsl(30, 100%, 50%)' },
                       { fill: 'hsl(0, 84%, 60%)' },
                     ].map((entry, i) => (
                       <Cell key={i} fill={entry.fill} />
