@@ -195,7 +195,7 @@ export default function Checkout() {
   };
 
   const handleSubmit = async () => {
-    if (shippingMethod === 'retirada') {
+    if (false) {
       setShowStoreError(true);
       return;
     }
