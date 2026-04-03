@@ -56,7 +56,7 @@ export default function Checkout() {
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
   const [cepLoading, setCepLoading] = useState(false);
-  const [shippingMethod, setShippingMethod] = useState<'sedex' | 'retirada' | null>(null);
+  const [shippingMethod, setShippingMethod] = useState<'sedex' | 'retirada' | null>('sedex');
   const [showStoreError, setShowStoreError] = useState(false);
   const [showCepError, setShowCepError] = useState(false);
   const [nearestStore, setNearestStore] = useState<CentauroStore | null>(null);
