@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, TrendingUp, Users, CheckCircle, ArrowDown, Trash2, Code, Webhook, Bell, Zap, Loader2, ExternalLink, CreditCard, QrCode, Copy, RefreshCw, Plus, DollarSign, Shield } from 'lucide-react';
+import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, TrendingUp, Users, CheckCircle, ArrowDown, Trash2, Code, Webhook, Bell, Zap, Loader2, ExternalLink, CreditCard, QrCode, Copy, RefreshCw, Plus, DollarSign, Shield, Gift } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { getFunnelStats, clearFunnelEvents } from '@/lib/funnelTracking';
@@ -29,7 +29,7 @@ export default function AdminPanel() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('analytics');
   const [period, setPeriod] = useState(30);
-  const [stats, setStats] = useState({ visitors: 0, quizStarted: 0, quizCompleted: 0, checkout: 0, purchase: 0, activeNow: 0 });
+  const [stats, setStats] = useState({ visitors: 0, quizStarted: 0, quizCompleted: 0, scratchCard: 0, checkout: 0, purchase: 0, activeNow: 0 });
 
   // Pixel state
   const [pixelConfig, setPixelConfig] = useState<PixelConfig>({ facebookPixels: [], tiktokPixels: [], googleAdsPixels: [], utmifyHtml: '' });
@@ -253,7 +253,8 @@ export default function AdminPanel() {
   const funnelSteps = [
     { icon: <Eye size={20} className="text-primary" />, title: 'Visitantes', description: 'Chegaram à landing page', count: stats.visitors, conversion: null as number | null, dropoff: `${pct(stats.quizStarted, stats.visitors)}% dos visitantes`, progressValue: 100 },
     { icon: <TrendingUp size={20} className="text-centauro-green" />, title: 'Quiz Iniciado', description: 'Clicaram em Começar', count: stats.quizStarted, conversion: pct(stats.quizStarted, stats.visitors), dropoff: `${pct(stats.quizCompleted, stats.quizStarted)}% dos iniciados`, progressValue: stats.visitors > 0 ? (stats.quizStarted / stats.visitors) * 100 : 0 },
-    { icon: <CheckCircle size={20} className="text-centauro-gold" />, title: 'Quiz Completado', description: 'Terminaram as 8 perguntas', count: stats.quizCompleted, conversion: pct(stats.quizCompleted, stats.visitors), dropoff: `${pct(stats.checkout, stats.quizCompleted)}% dos completados`, progressValue: stats.visitors > 0 ? (stats.quizCompleted / stats.visitors) * 100 : 0 },
+    { icon: <CheckCircle size={20} className="text-centauro-gold" />, title: 'Quiz Completado', description: 'Terminaram as 8 perguntas', count: stats.quizCompleted, conversion: pct(stats.quizCompleted, stats.visitors), dropoff: `${pct(stats.scratchCard, stats.quizCompleted)}% dos completados`, progressValue: stats.visitors > 0 ? (stats.quizCompleted / stats.visitors) * 100 : 0 },
+    { icon: <Gift size={20} className="text-purple-500" />, title: 'Raspadinha', description: 'Abriram a raspadinha', count: stats.scratchCard, conversion: pct(stats.scratchCard, stats.visitors), dropoff: `${pct(stats.checkout, stats.scratchCard)}% da raspadinha`, progressValue: stats.visitors > 0 ? (stats.scratchCard / stats.visitors) * 100 : 0 },
     { icon: <ShoppingCart size={20} className="text-orange-500" />, title: 'Checkout', description: 'Estão no checkout', count: stats.checkout, conversion: pct(stats.checkout, stats.visitors), dropoff: `${pct(stats.purchase, stats.checkout)}% do checkout`, progressValue: stats.visitors > 0 ? (stats.checkout / stats.visitors) * 100 : 0 },
     { icon: <DollarSign size={20} className="text-destructive" />, title: 'Comprou', description: 'Geraram o PIX', count: stats.purchase, conversion: pct(stats.purchase, stats.visitors), dropoff: null as string | null, progressValue: stats.visitors > 0 ? (stats.purchase / stats.visitors) * 100 : 0 },
   ];
@@ -365,11 +366,12 @@ export default function AdminPanel() {
             {/* Funnel Chart */}
             <Card className="mt-6 p-5 border border-border shadow-sm bg-background">
               <h3 className="font-black text-foreground text-sm mb-3 uppercase">Funil Visual</h3>
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={[
                   { etapa: 'Visitantes', valor: stats.visitors, fill: 'hsl(var(--primary))' },
                   { etapa: 'Quiz Início', valor: stats.quizStarted, fill: 'hsl(142, 71%, 45%)' },
                   { etapa: 'Quiz Fim', valor: stats.quizCompleted, fill: 'hsl(45, 93%, 47%)' },
+                  { etapa: 'Raspadinha', valor: stats.scratchCard, fill: 'hsl(270, 60%, 55%)' },
                   { etapa: 'Checkout', valor: stats.checkout, fill: 'hsl(30, 100%, 50%)' },
                   { etapa: 'Comprou', valor: stats.purchase, fill: 'hsl(0, 84%, 60%)' },
                 ]} layout="vertical" margin={{ left: 10, right: 30 }}>
@@ -382,6 +384,7 @@ export default function AdminPanel() {
                       { fill: 'hsl(var(--primary))' },
                       { fill: 'hsl(142, 71%, 45%)' },
                       { fill: 'hsl(45, 93%, 47%)' },
+                      { fill: 'hsl(270, 60%, 55%)' },
                       { fill: 'hsl(30, 100%, 50%)' },
                       { fill: 'hsl(0, 84%, 60%)' },
                     ].map((entry, i) => (
@@ -562,6 +565,27 @@ export default function AdminPanel() {
               <p className="text-[9px] text-muted-foreground mt-1">Utmify → Integrações → Pixel → Copie o código HTML completo</p>
             </Card>
 
+            {/* Conversion Mode Toggle */}
+            <Card className="p-5 border border-border mt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-black text-foreground text-sm">Modo de Conversão</h3>
+                  <p className="text-muted-foreground text-[11px] mt-0.5">
+                    {pixelConfig.onlyPaid
+                      ? '🟢 Marcando conversão apenas quando PAGO (aprovado)'
+                      : '🟡 Marcando conversão em PENDENTE e PAGO'}
+                  </p>
+                </div>
+                <Switch
+                  checked={pixelConfig.onlyPaid || false}
+                  onCheckedChange={(checked) => setPixelConfig(prev => ({ ...prev, onlyPaid: checked }))}
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-2">
+                Desativado = dispara pixel em venda pendente (PIX gerado) e aprovada. Ativado = dispara pixel apenas quando o pagamento é confirmado.
+              </p>
+            </Card>
+
             <Button onClick={handleSavePixels} className="w-full mt-4 bg-centauro-green hover:bg-centauro-green/90 text-primary-foreground font-bold text-xs">
               <Save size={14} className="mr-1.5" /> Salvar e Ativar Pixels
             </Button>
@@ -577,7 +601,7 @@ export default function AdminPanel() {
                 <li><strong>Pixel ID:</strong> Dispara eventos no navegador (PageView, Purchase)</li>
                 <li><strong>Access Token / CAPI:</strong> Envia eventos server-side para maior precisão</li>
                 <li>O token é opcional, mas recomendado para contornar bloqueadores de anúncios</li>
-                <li>Evento de conversão é disparado ao clicar no checkout</li>
+                <li><strong>Modo Conversão:</strong> Controla quando o evento Purchase é disparado (pendente+pago ou só pago)</li>
               </ul>
             </div>
           </div>

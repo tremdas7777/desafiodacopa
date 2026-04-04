@@ -31,6 +31,8 @@ export interface PixelConfig {
   tiktokPixels: TikTokPixelEntry[];
   googleAdsPixels: GoogleAdsEntry[];
   utmifyHtml?: string;
+  // Conversion mode: true = fire only on paid, false = fire on pending + paid
+  onlyPaid?: boolean;
 }
 
 const STORAGE_KEY = 'pixel_config';
@@ -41,6 +43,7 @@ function migrateConfig(raw: any): PixelConfig {
     tiktokPixels: raw.tiktokPixels || [],
     googleAdsPixels: raw.googleAdsPixels || [],
     utmifyHtml: raw.utmifyHtml || '',
+    onlyPaid: raw.onlyPaid ?? false,
   };
 
   // Migrate legacy single fields into arrays if arrays are empty
@@ -62,6 +65,7 @@ const DEFAULT_CONFIG: PixelConfig = {
   tiktokPixels: [],
   googleAdsPixels: [],
   utmifyHtml: '',
+  onlyPaid: false,
 };
 
 export function getPixelConfig(): PixelConfig {

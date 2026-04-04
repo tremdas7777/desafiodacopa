@@ -3,7 +3,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export type FunnelEvent = 'visitor' | 'quiz_started' | 'quiz_completed' | 'checkout' | 'purchase';
+export type FunnelEvent = 'visitor' | 'quiz_started' | 'quiz_completed' | 'scratch_card' | 'checkout' | 'purchase';
 
 const SESSION_KEY = 'funnel_session_id';
 
@@ -38,18 +38,19 @@ export async function getFunnelStats(periodMinutes: number) {
 
   if (error) {
     console.warn('Failed to fetch funnel stats:', error);
-    return { visitors: 0, quizStarted: 0, quizCompleted: 0, checkout: 0, purchase: 0, activeNow: 0 };
+    return { visitors: 0, quizStarted: 0, quizCompleted: 0, scratchCard: 0, checkout: 0, purchase: 0, activeNow: 0 };
   }
 
   const events = data || [];
   const visitors = events.filter(e => e.event === 'visitor').length;
   const quizStarted = events.filter(e => e.event === 'quiz_started').length;
   const quizCompleted = events.filter(e => e.event === 'quiz_completed').length;
+  const scratchCard = events.filter(e => e.event === 'scratch_card').length;
   const checkout = events.filter(e => e.event === 'checkout').length;
   const purchase = events.filter(e => e.event === 'purchase').length;
   const activeNow = events.filter(e => e.created_at >= activeNowCutoff).length;
 
-  return { visitors, quizStarted, quizCompleted, checkout, purchase, activeNow };
+  return { visitors, quizStarted, quizCompleted, scratchCard, checkout, purchase, activeNow };
 }
 
 export async function clearFunnelEvents() {

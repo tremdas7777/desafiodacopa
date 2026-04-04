@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Copy, CheckCircle, QrCode, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { fireConversionEvent, getPixelConfig } from '@/lib/pixelManager';
 
 interface PixPopupProps {
   open: boolean;
@@ -17,6 +18,26 @@ interface PixPopupProps {
 
 export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
+  const hasFiredPaidPixel = useRef(false);
+
+  // Poll order status and fire pixel when paid
+  useEffect(() => {
+    if (!open || !orderId) return;
+    hasFiredPaidPixel.current = false;
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase.from('orders').select('status').eq('id', orderId).single();
+      if (data?.status === 'paid' && !hasFiredPaidPixel.current) {
+        hasFiredPaidPixel.current = true;
+        const cfg = getPixelConfig();
+        // If onlyPaid is ON, this is the moment to fire. If OFF, fire again for "approved" tracking.
+        fireConversionEvent('Purchase', { value: amount, currency: 'BRL' });
+        clearInterval(interval);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [open, orderId, amount]);
 
   const handleCopy = async () => {
     try {

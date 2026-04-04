@@ -405,7 +405,7 @@ export default function QuizHome() {
   }
 
   if (showAnimation) {
-    return <LoadingAnimation onComplete={() => { setShowAnimation(false); setShowScratchCard(true); }} />;
+    return <LoadingAnimation onComplete={() => { setShowAnimation(false); setShowScratchCard(true); trackEvent('scratch_card'); }} />;
   }
 
   if (showScratchCard) {

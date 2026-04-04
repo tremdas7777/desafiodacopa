@@ -11,7 +11,7 @@ import camisaAzulImg from '@/assets/camisa-azul.png';
 import albumImg from '@/assets/album-copa-hero.webp';
 import ingressosVipImg from '@/assets/ingressos-vip-copa.png';
 import { trackEvent } from '@/lib/funnelTracking';
-import { fireConversionEvent } from '@/lib/pixelManager';
+import { fireConversionEvent, getPixelConfig } from '@/lib/pixelManager';
 import { fireWebhookEvent } from '@/lib/webhookManager';
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import { supabase } from '@/integrations/supabase/client';
@@ -201,7 +201,10 @@ export default function Checkout() {
     }
 
     trackEvent('purchase');
-    fireConversionEvent('Purchase', { value: 44.90, currency: 'BRL' });
+    const pxCfg = getPixelConfig();
+    if (!pxCfg.onlyPaid) {
+      fireConversionEvent('Purchase', { value: 44.90, currency: 'BRL' });
+    }
 
     const gatewayConfig = await fetchPaymentGatewayConfig();
     let activeGateway = gatewayConfig.activeGateway;
