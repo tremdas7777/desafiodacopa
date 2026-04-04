@@ -366,11 +366,12 @@ export default function AdminPanel() {
             {/* Funnel Chart */}
             <Card className="mt-6 p-5 border border-border shadow-sm bg-background">
               <h3 className="font-black text-foreground text-sm mb-3 uppercase">Funil Visual</h3>
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={[
                   { etapa: 'Visitantes', valor: stats.visitors, fill: 'hsl(var(--primary))' },
                   { etapa: 'Quiz Início', valor: stats.quizStarted, fill: 'hsl(142, 71%, 45%)' },
                   { etapa: 'Quiz Fim', valor: stats.quizCompleted, fill: 'hsl(45, 93%, 47%)' },
+                  { etapa: 'Raspadinha', valor: stats.scratchCard, fill: 'hsl(270, 60%, 55%)' },
                   { etapa: 'Checkout', valor: stats.checkout, fill: 'hsl(30, 100%, 50%)' },
                   { etapa: 'Comprou', valor: stats.purchase, fill: 'hsl(0, 84%, 60%)' },
                 ]} layout="vertical" margin={{ left: 10, right: 30 }}>
@@ -383,6 +384,7 @@ export default function AdminPanel() {
                       { fill: 'hsl(var(--primary))' },
                       { fill: 'hsl(142, 71%, 45%)' },
                       { fill: 'hsl(45, 93%, 47%)' },
+                      { fill: 'hsl(270, 60%, 55%)' },
                       { fill: 'hsl(30, 100%, 50%)' },
                       { fill: 'hsl(0, 84%, 60%)' },
                     ].map((entry, i) => (
