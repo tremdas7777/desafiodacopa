@@ -601,7 +601,7 @@ export default function AdminPanel() {
                 <li><strong>Pixel ID:</strong> Dispara eventos no navegador (PageView, Purchase)</li>
                 <li><strong>Access Token / CAPI:</strong> Envia eventos server-side para maior precisão</li>
                 <li>O token é opcional, mas recomendado para contornar bloqueadores de anúncios</li>
-                <li>Evento de conversão é disparado ao clicar no checkout</li>
+                <li><strong>Modo Conversão:</strong> Controla quando o evento Purchase é disparado (pendente+pago ou só pago)</li>
               </ul>
             </div>
           </div>
