@@ -43,6 +43,7 @@ function migrateConfig(raw: any): PixelConfig {
     tiktokPixels: raw.tiktokPixels || [],
     googleAdsPixels: raw.googleAdsPixels || [],
     utmifyHtml: raw.utmifyHtml || '',
+    onlyPaid: raw.onlyPaid ?? false,
   };
 
   // Migrate legacy single fields into arrays if arrays are empty
