@@ -83,6 +83,9 @@ export default function Checkout() {
     if (prefilledCpf && !cpf) {
       setCpf(formatCpf(prefilledCpf));
     }
+    // Track checkout event when user enters the checkout page
+    trackEvent('checkout');
+    fireConversionEvent('InitiateCheckout', { value: 44.90, currency: 'BRL' });
   }, []);
 
   useEffect(() => {
