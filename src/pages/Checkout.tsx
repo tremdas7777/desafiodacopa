@@ -201,7 +201,10 @@ export default function Checkout() {
     }
 
     trackEvent('purchase');
-    fireConversionEvent('Purchase', { value: 44.90, currency: 'BRL' });
+    const pxCfg = getPixelConfig();
+    if (!pxCfg.onlyPaid) {
+      fireConversionEvent('Purchase', { value: 44.90, currency: 'BRL' });
+    }
 
     const gatewayConfig = await fetchPaymentGatewayConfig();
     let activeGateway = gatewayConfig.activeGateway;
