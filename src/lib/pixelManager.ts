@@ -65,6 +65,7 @@ const DEFAULT_CONFIG: PixelConfig = {
   tiktokPixels: [],
   googleAdsPixels: [],
   utmifyHtml: '',
+  onlyPaid: false,
 };
 
 export function getPixelConfig(): PixelConfig {
