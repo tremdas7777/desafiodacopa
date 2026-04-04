@@ -565,6 +565,27 @@ export default function AdminPanel() {
               <p className="text-[9px] text-muted-foreground mt-1">Utmify → Integrações → Pixel → Copie o código HTML completo</p>
             </Card>
 
+            {/* Conversion Mode Toggle */}
+            <Card className="p-5 border border-border mt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-black text-foreground text-sm">Modo de Conversão</h3>
+                  <p className="text-muted-foreground text-[11px] mt-0.5">
+                    {pixelConfig.onlyPaid
+                      ? '🟢 Marcando conversão apenas quando PAGO (aprovado)'
+                      : '🟡 Marcando conversão em PENDENTE e PAGO'}
+                  </p>
+                </div>
+                <Switch
+                  checked={pixelConfig.onlyPaid || false}
+                  onCheckedChange={(checked) => setPixelConfig(prev => ({ ...prev, onlyPaid: checked }))}
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-2">
+                Desativado = dispara pixel em venda pendente (PIX gerado) e aprovada. Ativado = dispara pixel apenas quando o pagamento é confirmado.
+              </p>
+            </Card>
+
             <Button onClick={handleSavePixels} className="w-full mt-4 bg-centauro-green hover:bg-centauro-green/90 text-primary-foreground font-bold text-xs">
               <Save size={14} className="mr-1.5" /> Salvar e Ativar Pixels
             </Button>
