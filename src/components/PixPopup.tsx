@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Copy, CheckCircle, QrCode, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { fireConversionEvent, getPixelConfig } from '@/lib/pixelManager';
 
 interface PixPopupProps {
   open: boolean;
