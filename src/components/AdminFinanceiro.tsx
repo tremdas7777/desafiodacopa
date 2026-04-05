@@ -160,6 +160,7 @@ export default function AdminFinanceiro() {
 
   const periods: { id: FilterPeriod; label: string }[] = [
     { id: 'hoje', label: 'Hoje' },
+    { id: 'ontem', label: 'Ontem' },
     { id: '3dias', label: '3 dias' },
     { id: '7dias', label: '7 dias' },
     { id: '15dias', label: '15 dias' },
