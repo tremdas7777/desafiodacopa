@@ -78,7 +78,24 @@ export default function AdminPanel() {
     const saved = localStorage.getItem('checkoutUrl');
     if (saved) { setCheckoutUrl(saved); setNewCheckoutUrl(saved); }
     setExternalCheckout(localStorage.getItem('externalCheckout') === 'true');
-    loadPixelConfigFromDb().then(cfg => setPixelConfig(cfg));
+    loadPixelConfigFromDb().then(async (cfg) => {
+      setPixelConfig(cfg);
+      // Auto-migrate: if DB is empty but localStorage has data, push to DB
+      const hasPixels = cfg.facebookPixels.length > 0 || cfg.tiktokPixels.length > 0 || cfg.googleAdsPixels.length > 0;
+      if (!hasPixels) {
+        try {
+          const raw = localStorage.getItem('pixel_config');
+          if (raw) {
+            const localCfg = JSON.parse(raw);
+            if (localCfg.facebookPixels?.length || localCfg.tiktokPixels?.length || localCfg.googleAdsPixels?.length) {
+              await savePixelConfig(localCfg);
+              setPixelConfig(localCfg);
+              console.log('[Pixels] Migrated localStorage config to database');
+            }
+          }
+        } catch { /* ignore */ }
+      }
+    });
     loadWebhooksFromDb().then(config => {
       setWebhookConfig(config);
       saveWebhookConfig(config); // sync to localStorage
