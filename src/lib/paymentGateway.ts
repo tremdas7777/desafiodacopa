@@ -29,13 +29,22 @@ export interface SimPayoutConfig {
   enabled: boolean;
 }
 
+export interface PayEvoConfig {
+  secretKey: string;
+  companyId: string;
+  receiverId: string;
+  apiKey: string;
+  enabled: boolean;
+}
+
 export interface PaymentGatewayConfig {
-  activeGateway: 'pagouai' | 'vennox' | 'centurionpay' | 'ironpay' | 'simpayout';
+  activeGateway: 'pagouai' | 'vennox' | 'centurionpay' | 'ironpay' | 'simpayout' | 'payevo';
   pagouai: PagouAiConfig;
   vennox: VennoxConfig;
   centurionpay: CenturionPayConfig;
   ironpay: IronPayConfig;
   simpayout: SimPayoutConfig;
+  payevo: PayEvoConfig;
 }
 
 const defaultConfig: PaymentGatewayConfig = {
@@ -45,6 +54,7 @@ const defaultConfig: PaymentGatewayConfig = {
   centurionpay: { secretKey: '', companyId: '', enabled: false },
   ironpay: { apiToken: '', enabled: false },
   simpayout: { clientId: '', clientSecret: '', enabled: false },
+  payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
 };
 
 // In-memory cache to avoid repeated DB calls within the same page
@@ -68,7 +78,7 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
     }
 
     const config: PaymentGatewayConfig = {
-      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout'].includes(data.active_gateway)
+      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'].includes(data.active_gateway)
         ? data.active_gateway
         : 'centurionpay') as PaymentGatewayConfig['activeGateway'],
       pagouai: {
@@ -94,6 +104,13 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
         clientId: (data as any).simpayout_client_id || '',
         clientSecret: (data as any).simpayout_client_secret || '',
         enabled: !!((data as any).simpayout_client_id && (data as any).simpayout_client_secret),
+      },
+      payevo: {
+        secretKey: (data as any).payevo_secret_key || '',
+        companyId: (data as any).payevo_company_id || '',
+        receiverId: (data as any).payevo_receiver_id || '',
+        apiKey: (data as any).payevo_api_key || '',
+        enabled: !!((data as any).payevo_secret_key),
       },
     };
 
@@ -125,6 +142,10 @@ export async function savePaymentGatewayConfig(config: PaymentGatewayConfig): Pr
       ironpay_api_token: config.ironpay.apiToken,
       simpayout_client_id: config.simpayout.clientId,
       simpayout_client_secret: config.simpayout.clientSecret,
+      payevo_secret_key: config.payevo.secretKey,
+      payevo_company_id: config.payevo.companyId,
+      payevo_receiver_id: config.payevo.receiverId,
+      payevo_api_key: config.payevo.apiKey,
       updated_at: new Date().toISOString(),
     };
 

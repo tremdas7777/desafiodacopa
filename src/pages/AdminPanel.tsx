@@ -57,6 +57,7 @@ export default function AdminPanel() {
     centurionpay: { secretKey: '', companyId: '', enabled: false },
     ironpay: { apiToken: '', enabled: false },
     simpayout: { clientId: '', clientSecret: '', enabled: false },
+    payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
   });
   const [gatewayMessage, setGatewayMessage] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
@@ -866,14 +867,14 @@ export default function AdminPanel() {
                 <span className="font-black text-foreground text-sm">Gateway Ativo</span>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {(['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout'] as const).map((gw) => (
+                {(['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'] as const).map((gw) => (
                   <button
                     key={gw}
                     onClick={async () => {
                       const updated = { ...gatewayConfig, activeGateway: gw };
                       setGatewayConfig(updated);
                       await savePaymentGatewayConfig(updated);
-                      const names: Record<string, string> = { pagouai: 'Pagou.ai', vennox: 'Vennox', centurionpay: 'Centurion Pay', ironpay: 'Iron Pay', simpayout: 'Sim Payout' };
+                      const names: Record<string, string> = { pagouai: 'Pagou.ai', vennox: 'Vennox', centurionpay: 'Centurion Pay', ironpay: 'Iron Pay', simpayout: 'Sim Payout', payevo: 'PayEvo' };
                       setGatewayMessage(`Gateway ativo: ${names[gw]}`);
                       setTimeout(() => setGatewayMessage(''), 3000);
                     }}
@@ -883,7 +884,7 @@ export default function AdminPanel() {
                         : 'border-border text-muted-foreground hover:border-muted-foreground/30'
                     }`}
                   >
-                    {gw === 'pagouai' ? 'Pagou.ai' : gw === 'vennox' ? 'Vennox' : gw === 'centurionpay' ? 'Centurion Pay' : gw === 'ironpay' ? 'Iron Pay' : 'Sim Payout'}
+                    {gw === 'pagouai' ? 'Pagou.ai' : gw === 'vennox' ? 'Vennox' : gw === 'centurionpay' ? 'Centurion Pay' : gw === 'ironpay' ? 'Iron Pay' : gw === 'simpayout' ? 'Sim Payout' : 'PayEvo'}
                   </button>
                 ))}
               </div>
@@ -1162,6 +1163,89 @@ export default function AdminPanel() {
               </div>
             </Card>
 
+            {/* PayEvo Config */}
+            <Card className="p-5 border border-border mt-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-centauro-green/10 flex items-center justify-center">
+                  <CreditCard size={20} className="text-centauro-green" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-black text-foreground text-sm">PayEvo</h3>
+                  <p className="text-muted-foreground text-[11px]">PayEvo - Gateway PIX</p>
+                </div>
+                {gatewayConfig.activeGateway === 'payevo' && (
+                  <Badge className="bg-centauro-green/10 text-centauro-green border-centauro-green/30 text-[10px]">Ativo</Badge>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Chave Secreta (Secret Key)</label>
+                  <Input
+                    type="password"
+                    value={gatewayConfig.payevo.secretKey}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      payevo: { ...prev.payevo, secretKey: e.target.value }
+                    }))}
+                    placeholder="sua_secret_key_aqui"
+                    className="font-mono text-xs mt-1"
+                  />
+                  <p className="text-[9px] text-muted-foreground mt-1">PayEvo → Configurações → Credenciais de API → Chave Secreta</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ID da Empresa (Company ID)</label>
+                  <Input
+                    type="text"
+                    value={gatewayConfig.payevo.companyId}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      payevo: { ...prev.payevo, companyId: e.target.value }
+                    }))}
+                    placeholder="seu_company_id_aqui"
+                    className="font-mono text-xs mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ID do Recebedor (Receiver ID)</label>
+                  <Input
+                    type="text"
+                    value={gatewayConfig.payevo.receiverId}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      payevo: { ...prev.payevo, receiverId: e.target.value }
+                    }))}
+                    placeholder="seu_receiver_id_aqui"
+                    className="font-mono text-xs mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Chave de API (API Key)</label>
+                  <Input
+                    type="password"
+                    value={gatewayConfig.payevo.apiKey}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      payevo: { ...prev.payevo, apiKey: e.target.value }
+                    }))}
+                    placeholder="sua_api_key_aqui"
+                    className="font-mono text-xs mt-1"
+                  />
+                </div>
+
+                <Button
+                  onClick={async () => {
+                    await savePaymentGatewayConfig(gatewayConfig);
+                    setGatewayMessage('Configuração da PayEvo salva com sucesso!');
+                    setTimeout(() => setGatewayMessage(''), 3000);
+                  }}
+                  className="w-full bg-centauro-green hover:bg-centauro-green/90 text-primary-foreground font-bold text-xs"
+                >
+                  <Save size={14} className="mr-1.5" /> Salvar PayEvo
+                </Button>
+              </div>
+            </Card>
+
             <div className="bg-centauro-gold/10 p-3.5 rounded-md border border-centauro-gold/20 mt-4">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Info size={13} className="text-centauro-gold" />
@@ -1176,6 +1260,7 @@ export default function AdminPanel() {
                 <li><strong>Centurion Pay:</strong> Company ID + Secret Key (autenticação Basic)</li>
                 <li><strong>Iron Pay:</strong> Token da API Pública (api_token)</li>
                 <li><strong>Sim Payout:</strong> Client ID (chave pública) + Client Secret (chave secreta)</li>
+                <li><strong>PayEvo:</strong> Secret Key + Company ID + Receiver ID + API Key (autenticação Basic)</li>
               </ul>
             </div>
           </div>

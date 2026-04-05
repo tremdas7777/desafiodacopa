@@ -273,9 +273,10 @@ export default function Checkout() {
     const hasCenturionPayKeys = !!gatewayConfig.centurionpay?.secretKey?.trim() && !!gatewayConfig.centurionpay?.companyId?.trim();
     const hasIronPayKeys = !!gatewayConfig.ironpay?.apiToken?.trim();
     const hasSimPayoutKeys = !!gatewayConfig.simpayout?.clientId?.trim() && !!gatewayConfig.simpayout?.clientSecret?.trim();
+    const hasPayEvoKeys = !!gatewayConfig.payevo?.secretKey?.trim();
 
-    const allGateways = ['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout'] as const;
-    const hasKeys: Record<string, boolean> = { pagouai: hasPagouaiKeys, vennox: hasVennoxKeys, centurionpay: hasCenturionPayKeys, ironpay: hasIronPayKeys, simpayout: hasSimPayoutKeys };
+    const allGateways = ['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'] as const;
+    const hasKeys: Record<string, boolean> = { pagouai: hasPagouaiKeys, vennox: hasVennoxKeys, centurionpay: hasCenturionPayKeys, ironpay: hasIronPayKeys, simpayout: hasSimPayoutKeys, payevo: hasPayEvoKeys };
 
     // If active gateway isn't configured, fall back to one that is
     if (!hasKeys[activeGateway]) {
@@ -467,6 +468,45 @@ export default function Checkout() {
           body: {
             clientId: gatewayConfig.simpayout.clientId,
             clientSecret: gatewayConfig.simpayout.clientSecret,
+            amount: shippingCost || 44.90,
+            buyerName: nome,
+            buyerEmail: email,
+            buyerDocument: cpf,
+            buyerPhone: telefone,
+            metadata: purchaseMetadata,
+          },
+        });
+
+        if (error) throw error;
+
+        setPixCode(data.pix_code || '');
+        setPixQrCodeBase64(data.pix_qr_code_base64 || '');
+        setPixOrderId(data.order_id || '');
+        setShowPixPopup(true);
+        sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
+        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
+        sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
+      } catch (err: any) {
+        console.error('PIX error:', err);
+        setPixError('Erro ao gerar PIX. Tente novamente.');
+        setTimeout(() => setPixError(''), 5000);
+      } finally {
+        setPixLoading(false);
+      }
+    } else if (activeGateway === 'payevo') {
+      if (!hasPayEvoKeys) {
+        setPixError('Gateway PayEvo não configurado. Configure as chaves no painel admin.');
+        setTimeout(() => setPixError(''), 5000);
+        return;
+      }
+      setPixLoading(true);
+      setPixError('');
+      try {
+        const { data, error } = await supabase.functions.invoke('criar-pix-payevo', {
+          body: {
+            secretKey: gatewayConfig.payevo.secretKey,
+            companyId: gatewayConfig.payevo.companyId,
+            receiverId: gatewayConfig.payevo.receiverId,
             amount: shippingCost || 44.90,
             buyerName: nome,
             buyerEmail: email,
