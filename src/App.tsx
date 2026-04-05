@@ -11,7 +11,6 @@ import ThankYou from "./pages/ThankYou";
 import NotFound from "./pages/NotFound";
 import SafePage from "./pages/SafePage";
 import Unsubscribe from "./pages/Unsubscribe";
-import SafePage from "./pages/SafePage";
 import { injectPixels, loadPixelConfigFromDb } from "./lib/pixelManager";
 import { useCloaker } from "./hooks/useCloaker";
 
