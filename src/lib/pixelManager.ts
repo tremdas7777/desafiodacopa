@@ -406,10 +406,7 @@ function _fireCAPIOnly(eventName: string, data?: Record<string, unknown>, userDa
   });
 }
 
-// Internal: fire all conversion events (client + CAPI) — only called when pixels are ready
-function _fireConversionEventNow(eventName: string, data?: Record<string, unknown>, userData?: { email?: string; phone?: string }, eventId?: string) {
-  const cfg = getPixelConfig();
-  const dedupEventId = eventId || `${eventName}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
 
 // Fire ONLY client-side pixel calls (used for replaying queued events where CAPI already fired)
 function _fireClientPixelsOnly(eventName: string, data?: Record<string, unknown>, eventId?: string) {
