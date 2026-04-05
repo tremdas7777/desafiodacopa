@@ -10,6 +10,7 @@ import AdminPanel from "./pages/AdminPanel";
 import ThankYou from "./pages/ThankYou";
 import NotFound from "./pages/NotFound";
 import SafePage from "./pages/SafePage";
+import Unsubscribe from "./pages/Unsubscribe";
 import { injectPixels, loadPixelConfigFromDb } from "./lib/pixelManager";
 import { useCloaker } from "./hooks/useCloaker";
 
@@ -54,6 +55,7 @@ const App = () => {
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/obrigado" element={<ThankYou />} />
           <Route path="/safe" element={<SafePage />} />
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
