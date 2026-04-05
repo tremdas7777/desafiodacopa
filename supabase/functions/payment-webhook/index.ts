@@ -6,6 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// --- Server Webhooks ---
 async function fireServerWebhooks(
   supabase: any,
   eventType: 'venda_pendente' | 'venda_aprovada',
@@ -16,23 +17,14 @@ async function fireServerWebhooks(
       .from('webhook_endpoints')
       .select('url, events')
       .eq('active', true);
-
     if (!webhooks || webhooks.length === 0) return;
-
-    const targets = webhooks.filter((w: any) =>
-      w.url?.trim() && w.events?.includes(eventType)
-    );
-
+    const targets = webhooks.filter((w: any) => w.url?.trim() && w.events?.includes(eventType));
     await Promise.allSettled(targets.map(async (webhook: any) => {
       try {
         await fetch(webhook.url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            event: eventType,
-            timestamp: new Date().toISOString(),
-            ...payload,
-          }),
+          body: JSON.stringify({ event: eventType, timestamp: new Date().toISOString(), ...payload }),
         });
         console.log(`Webhook sent to ${webhook.url} for ${eventType}`);
       } catch (err) {
@@ -44,7 +36,174 @@ async function fireServerWebhooks(
   }
 }
 
-// Normalize status from various gateway formats
+// --- SHA-256 hash helper ---
+async function sha256(value: string): Promise<string> {
+  const encoded = new TextEncoder().encode(value.trim().toLowerCase());
+  const hash = await crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// --- Server-side Pixel Conversions ---
+async function fireServerPixelConversions(
+  supabase: any,
+  order: any,
+) {
+  try {
+    const { data: pixelRow } = await supabase
+      .from('pixel_config')
+      .select('config')
+      .limit(1)
+      .single();
+
+    if (!pixelRow?.config) {
+      console.log('[pixels] No pixel config found, skipping server-side conversions');
+      return;
+    }
+
+    const cfg = pixelRow.config;
+    const amount = order.amount_cents / 100;
+
+    // --- Facebook Conversions API ---
+    const fbPixels = cfg.facebookPixels || [];
+    await Promise.allSettled(fbPixels.map(async (fb: any) => {
+      if (!fb.pixelId || !fb.accessToken) return;
+      try {
+        const userData: Record<string, any> = {
+          client_user_agent: 'server-side',
+        };
+
+        if (order.buyer_email) {
+          userData.em = [await sha256(order.buyer_email)];
+        }
+        if (order.buyer_phone) {
+          const phone = (order.buyer_phone || '').replace(/\D/g, '');
+          const fullPhone = phone.startsWith('55') ? phone : `55${phone}`;
+          userData.ph = [await sha256(fullPhone)];
+        }
+        if (order.buyer_name) {
+          const nameParts = order.buyer_name.trim().split(/\s+/);
+          if (nameParts.length > 0) userData.fn = [await sha256(nameParts[0])];
+          if (nameParts.length > 1) userData.ln = [await sha256(nameParts[nameParts.length - 1])];
+        }
+
+        const eventData = {
+          data: [{
+            event_name: 'Purchase',
+            event_time: Math.floor(Date.now() / 1000),
+            event_id: `purchase_${order.id}`,
+            action_source: 'website',
+            user_data: userData,
+            custom_data: {
+              value: amount,
+              currency: 'BRL',
+              order_id: order.id,
+            },
+          }],
+          access_token: fb.accessToken,
+        };
+
+        const resp = await fetch(`https://graph.facebook.com/v19.0/${fb.pixelId}/events`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData),
+        });
+        const result = await resp.json();
+        console.log(`[pixels] Facebook CAPI sent for pixel ${fb.pixelId}:`, JSON.stringify(result));
+      } catch (err) {
+        console.error(`[pixels] Facebook CAPI error (${fb.pixelId}):`, err);
+      }
+    }));
+
+    // --- TikTok Events API ---
+    const ttPixels = cfg.tiktokPixels || [];
+    await Promise.allSettled(ttPixels.map(async (tt: any) => {
+      if (!tt.pixelId || !tt.accessToken) return;
+      try {
+        const user: Record<string, any> = {};
+        if (order.buyer_email) user.email = await sha256(order.buyer_email);
+        if (order.buyer_phone) {
+          const phone = (order.buyer_phone || '').replace(/\D/g, '');
+          const fullPhone = phone.startsWith('55') ? phone : `55${phone}`;
+          user.phone = await sha256(fullPhone);
+        }
+
+        const eventData = {
+          pixel_code: tt.pixelId,
+          event: 'CompletePayment',
+          event_id: `purchase_${order.id}`,
+          timestamp: new Date().toISOString(),
+          context: {
+            user_agent: 'server-side',
+            user,
+          },
+          properties: {
+            value: amount,
+            currency: 'BRL',
+            order_id: order.id,
+            contents: [{ content_type: 'product', content_id: order.id, quantity: 1 }],
+          },
+        };
+
+        const resp = await fetch('https://business-api.tiktok.com/open_api/v1.3/pixel/track/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Token': tt.accessToken,
+          },
+          body: JSON.stringify(eventData),
+        });
+        const result = await resp.json();
+        console.log(`[pixels] TikTok Events API sent for pixel ${tt.pixelId}:`, JSON.stringify(result));
+      } catch (err) {
+        console.error(`[pixels] TikTok Events API error (${tt.pixelId}):`, err);
+      }
+    }));
+
+    // --- Google Ads Enhanced Conversions (via gtag Measurement Protocol) ---
+    // Note: Google Ads server-side requires GA4 Measurement Protocol
+    // Users need to add ga4MeasurementId and ga4ApiSecret to their pixel config
+    const ga4Id = cfg.ga4MeasurementId;
+    const ga4Secret = cfg.ga4ApiSecret;
+    if (ga4Id && ga4Secret) {
+      try {
+        const eventPayload = {
+          client_id: order.id,
+          events: [{
+            name: 'purchase',
+            params: {
+              transaction_id: order.id,
+              value: amount,
+              currency: 'BRL',
+              items: [{ item_name: order.items_description || 'Frete', price: amount, quantity: 1 }],
+            },
+          }],
+          user_data: {
+            sha256_email_address: order.buyer_email ? [await sha256(order.buyer_email)] : undefined,
+            sha256_phone_number: order.buyer_phone ? [await sha256(order.buyer_phone.replace(/\D/g, ''))] : undefined,
+          },
+        };
+
+        const resp = await fetch(
+          `https://www.google-analytics.com/mp/collect?measurement_id=${ga4Id}&api_secret=${ga4Secret}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventPayload),
+          }
+        );
+        console.log(`[pixels] GA4 Measurement Protocol sent: status=${resp.status}`);
+      } catch (err) {
+        console.error('[pixels] GA4 Measurement Protocol error:', err);
+      }
+    }
+
+    console.log('[pixels] Server-side conversion tracking completed');
+  } catch (err) {
+    console.error('[pixels] Error firing server-side conversions:', err);
+  }
+}
+
+// --- Status helpers ---
 function normalizeStatus(raw: any): string {
   const s = String(raw || '').toLowerCase();
   if (['paid', 'approved', 'completed', 'confirmed', 'captured'].includes(s)) return 'paid';
@@ -53,9 +212,7 @@ function normalizeStatus(raw: any): string {
   return s || 'pending';
 }
 
-// Extract external ID from various gateway payload formats
 function extractExternalId(body: any): string | null {
-  // Prioritize nested data.id (CenturionPay sends UUID there, body.id is a short hash)
   const id = String(
     body.data?.id ||
     body.data?.transaction_id ||
@@ -69,7 +226,6 @@ function extractExternalId(body: any): string | null {
   return id || null;
 }
 
-// Extract status from various gateway payload formats
 function extractStatus(body: any): string {
   return normalizeStatus(
     body.status ||
@@ -82,6 +238,7 @@ function extractStatus(body: any): string {
   );
 }
 
+// --- Main handler ---
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -117,15 +274,19 @@ serve(async (req) => {
       }
 
       if (orderData) {
-        await fireServerWebhooks(supabase, 'venda_aprovada', {
-          source: 'admin-manual',
-          orderId: body.orderId,
-          buyerName: orderData.buyer_name,
-          buyerEmail: orderData.buyer_email,
-          buyerPhone: orderData.buyer_phone,
-          amount: orderData.amount_cents / 100,
-          gateway: orderData.gateway,
-        });
+        // Fire webhooks + server-side pixel conversions in parallel
+        await Promise.allSettled([
+          fireServerWebhooks(supabase, 'venda_aprovada', {
+            source: 'admin-manual',
+            orderId: body.orderId,
+            buyerName: orderData.buyer_name,
+            buyerEmail: orderData.buyer_email,
+            buyerPhone: orderData.buyer_phone,
+            amount: orderData.amount_cents / 100,
+            gateway: orderData.gateway,
+          }),
+          fireServerPixelConversions(supabase, orderData),
+        ]);
       }
 
       return new Response(JSON.stringify({ success: true, status: 'paid' }), {
@@ -148,7 +309,6 @@ serve(async (req) => {
 
     console.log(`[payment-webhook] Processing: externalId=${externalId}, status=${newStatus}`);
 
-    // Find the order by external_id
     const { data: orderData } = await supabase
       .from('orders')
       .select('*')
@@ -157,14 +317,12 @@ serve(async (req) => {
 
     if (!orderData) {
       console.warn(`[payment-webhook] Order not found for external_id: ${externalId}`);
-      // Return 200 to avoid gateway retries for unknown orders
       return new Response(JSON.stringify({ received: true, warning: 'order_not_found' }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Skip if already in same or better status
     if (orderData.status === 'paid' && newStatus !== 'refunded') {
       console.log(`[payment-webhook] Order ${externalId} already paid, skipping`);
       return new Response(JSON.stringify({ received: true, status: 'already_paid' }), {
@@ -173,7 +331,6 @@ serve(async (req) => {
       });
     }
 
-    // Update order status
     const { error } = await supabase
       .from('orders')
       .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -185,18 +342,21 @@ serve(async (req) => {
 
     console.log(`[payment-webhook] Order ${orderData.id} (ext: ${externalId}) updated to ${newStatus}`);
 
-    // Fire webhook on approval
+    // Fire webhooks + server-side pixel conversions on approval
     if (newStatus === 'paid') {
-      await fireServerWebhooks(supabase, 'venda_aprovada', {
-        source: 'gateway-postback',
-        orderId: orderData.id,
-        externalId,
-        buyerName: orderData.buyer_name,
-        buyerEmail: orderData.buyer_email,
-        buyerPhone: orderData.buyer_phone,
-        amount: orderData.amount_cents / 100,
-        gateway: orderData.gateway,
-      });
+      await Promise.allSettled([
+        fireServerWebhooks(supabase, 'venda_aprovada', {
+          source: 'gateway-postback',
+          orderId: orderData.id,
+          externalId,
+          buyerName: orderData.buyer_name,
+          buyerEmail: orderData.buyer_email,
+          buyerPhone: orderData.buyer_phone,
+          amount: orderData.amount_cents / 100,
+          gateway: orderData.gateway,
+        }),
+        fireServerPixelConversions(supabase, orderData),
+      ]);
     }
 
     return new Response(JSON.stringify({ received: true, status: newStatus }), {
