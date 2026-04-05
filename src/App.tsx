@@ -8,6 +8,7 @@ import QuizHome from "./pages/QuizHome";
 import Checkout from "./pages/Checkout";
 import AdminPanel from "./pages/AdminPanel";
 import ThankYou from "./pages/ThankYou";
+import ThankYouUpsell from "./pages/ThankYouUpsell";
 import NotFound from "./pages/NotFound";
 import SafePage from "./pages/SafePage";
 import Unsubscribe from "./pages/Unsubscribe";
