@@ -1,4 +1,7 @@
 // Pixel management - supports multiple pixels per platform
+// Config is persisted in Supabase (pixel_config table) so ALL visitors load the pixels
+
+import { supabase } from '@/integrations/supabase/client';
 
 export interface FacebookPixelEntry {
   id: string;
@@ -68,17 +71,78 @@ const DEFAULT_CONFIG: PixelConfig = {
   onlyPaid: false,
 };
 
+// In-memory cache so synchronous reads work after initial load
+let cachedConfig: PixelConfig = DEFAULT_CONFIG;
+let configLoaded = false;
+
+/** Synchronous getter – returns cached config (call loadPixelConfigFromDb first) */
 export function getPixelConfig(): PixelConfig {
+  // Fallback: if DB hasn't loaded yet, try localStorage (legacy)
+  if (!configLoaded) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return migrateConfig(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }
+  return cachedConfig;
+}
+
+/** Load config from database and cache it */
+export async function loadPixelConfigFromDb(): Promise<PixelConfig> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? migrateConfig(JSON.parse(raw)) : DEFAULT_CONFIG;
-  } catch {
-    return DEFAULT_CONFIG;
+    const { data, error } = await supabase
+      .from('pixel_config')
+      .select('config')
+      .limit(1)
+      .single();
+
+    if (error || !data) {
+      console.warn('[Pixels] Failed to load from DB, using fallback:', error?.message);
+      return getPixelConfig();
+    }
+
+    const cfg = migrateConfig(data.config || {});
+    cachedConfig = cfg;
+    configLoaded = true;
+
+    // Also sync to localStorage for legacy compat
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+
+    return cfg;
+  } catch (err) {
+    console.warn('[Pixels] DB load error:', err);
+    return getPixelConfig();
   }
 }
 
-export function savePixelConfig(config: PixelConfig) {
+/** Save config to database AND localStorage */
+export async function savePixelConfig(config: PixelConfig) {
+  cachedConfig = config;
+  configLoaded = true;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+
+  try {
+    // Get existing row
+    const { data: existing } = await supabase
+      .from('pixel_config')
+      .select('id')
+      .limit(1)
+      .single();
+
+    if (existing) {
+      await supabase
+        .from('pixel_config')
+        .update({ config: config as any, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
+    } else {
+      await supabase
+        .from('pixel_config')
+        .insert({ config: config as any });
+    }
+  } catch (err) {
+    console.error('[Pixels] Failed to save to DB:', err);
+  }
+
   injectPixels(config);
 }
 
@@ -112,7 +176,7 @@ export function injectPixels(config?: PixelConfig) {
     const noscript = document.createElement('noscript');
     noscript.setAttribute('data-pixel-injected', `facebook-ns-${i}`);
     noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${fb.pixelId}&ev=PageView&noscript=1"/>`;
-    document.head.appendChild(noscript);
+    document.body.appendChild(noscript);
   });
 
   // TikTok Pixels
