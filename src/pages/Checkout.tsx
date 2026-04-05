@@ -922,17 +922,20 @@ export default function Checkout() {
                     <div
                       onClick={() => {
                         setShowStoreError(true);
-                        setShippingMethod('sedex');
                       }}
                       className="flex items-center gap-3 p-3 rounded-lg border-2 border-border opacity-60 cursor-pointer transition-all relative"
                     >
                       <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/40 flex items-center justify-center" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-xs font-bold text-foreground line-through">Retirada na Loja Centauro</p>
-                          <span className="text-[9px] font-black text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">INDISPONÍVEL</span>
+                          <p className="text-xs font-bold text-foreground line-through">
+                            Retirada na Loja — {nearestStore ? nearestStore.name : 'Centauro mais próxima'}
+                          </p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Temporariamente sem estoque para retirada</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {nearestStore ? `${nearestStore.city}/${nearestStore.uf}` : 'Busca automática pelo CEP'}
+                        </p>
+                        <span className="text-[9px] font-black text-destructive bg-destructive/10 px-1.5 py-0.5 rounded inline-block mt-1">INDISPONÍVEL NO MOMENTO</span>
                       </div>
                       <span className="text-sm font-black text-muted-foreground line-through">GRÁTIS</span>
                     </div>
