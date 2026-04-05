@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Copy, CheckCircle, QrCode, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,8 +22,9 @@ interface PixPopupProps {
 export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
   const hasFiredPaidPixel = useRef(false);
+  const navigate = useNavigate();
 
-  // Poll order status and fire pixel when paid
+  // Poll order status and fire pixel when paid, then redirect
   useEffect(() => {
     if (!open || !orderId) return;
     hasFiredPaidPixel.current = false;
@@ -32,9 +34,12 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
       if (data?.status === 'paid' && !hasFiredPaidPixel.current) {
         hasFiredPaidPixel.current = true;
         const cfg = getPixelConfig();
-        // If onlyPaid is ON, this is the moment to fire. If OFF, fire again for "approved" tracking.
         fireConversionEvent('Purchase', { value: amount, currency: 'BRL' }, { email: buyerEmail, phone: buyerPhone });
         clearInterval(interval);
+        // Redirect to thank you page after a short delay
+        setTimeout(() => {
+          navigate('/obrigado');
+        }, 1500);
       }
     }, 5000);
 
