@@ -433,21 +433,27 @@ function _fireClientPixelsOnly(eventName: string, data?: Record<string, unknown>
     console.log(`[Pixels] ttq.track('${tiktokEventName}') fired (replay)`);
   }
 
-  // Google Ads - client pixel
+  // Google Ads - client pixel (with gclid for enhanced conversions)
+  const campaignParams = getCampaignParams();
   cfg.googleAdsPixels.forEach(ga => {
     if (!ga.adsId || typeof (window as any).gtag !== 'function') return;
+    const conversionData: Record<string, any> = {
+      transaction_id: dedupEventId,
+      ...data,
+    };
+    // Pass gclid/wbraid/gbraid for better attribution
+    if (campaignParams.gclid) conversionData.gclid = campaignParams.gclid;
+    if (campaignParams.wbraid) conversionData.wbraid = campaignParams.wbraid;
+    if (campaignParams.gbraid) conversionData.gbraid = campaignParams.gbraid;
+
     if (ga.adsLabel) {
       (window as any).gtag('event', 'conversion', {
         send_to: `${ga.adsId}/${ga.adsLabel}`,
-        transaction_id: dedupEventId,
-        ...data,
+        ...conversionData,
       });
       console.log(`[Pixels] gtag conversion sent (replay) to ${ga.adsId}/${ga.adsLabel}`);
     } else {
-      (window as any).gtag('event', eventName === 'Purchase' ? 'conversion' : eventName, {
-        transaction_id: dedupEventId,
-        ...data,
-      });
+      (window as any).gtag('event', eventName === 'Purchase' ? 'conversion' : eventName, conversionData);
     }
   });
 }
