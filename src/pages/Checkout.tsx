@@ -1078,6 +1078,8 @@ export default function Checkout() {
         pixQrCodeBase64={pixQrCodeBase64}
         orderId={pixOrderId}
         amount={shippingCost || 44.90}
+        buyerEmail={email}
+        buyerPhone={telefone}
       />
     </div>
   );
