@@ -3,9 +3,11 @@ import { CheckCircle, Package, Truck, Gift, ArrowRight, ShieldCheck } from 'luci
 import { Button } from '@/components/ui/button';
 import centauroLogo from '@/assets/centauro-logo.webp';
 import cbfLogo from '@/assets/cbf-logo.webp';
+import UpsellPopup from '@/components/UpsellPopup';
 
 export default function ThankYou() {
   const [showConfetti, setShowConfetti] = useState(true);
+  const [showUpsell, setShowUpsell] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -14,7 +16,12 @@ export default function ThankYou() {
     document.body.style.backgroundColor = '#212121';
 
     const timer = setTimeout(() => setShowConfetti(false), 4000);
-    return () => clearTimeout(timer);
+    // Show upsell popup after 2 seconds
+    const upsellTimer = setTimeout(() => setShowUpsell(true), 2000);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(upsellTimer);
+    };
   }, []);
 
   return (
