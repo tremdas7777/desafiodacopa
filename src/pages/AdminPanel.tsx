@@ -991,7 +991,7 @@ export default function AdminPanel() {
                   <Save size={14} className="mr-1.5" /> Salvar Pagou.ai
                 </Button>
                 <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('Pagou.ai')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
-                  <Zap size={14} className="mr-1.5" /> Testar Pagou.ai (R$ 1,00)
+                  <Zap size={14} className="mr-1.5" /> Testar Pagou.ai (R$ 44,90)
                 </Button>
               </div>
             </Card>
@@ -1052,7 +1052,7 @@ export default function AdminPanel() {
                   <Save size={14} className="mr-1.5" /> Salvar Vennox
                 </Button>
                 <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('Vennox')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
-                  <Zap size={14} className="mr-1.5" /> Testar Vennox (R$ 1,00)
+                  <Zap size={14} className="mr-1.5" /> Testar Vennox (R$ 44,90)
                 </Button>
               </div>
             </Card>
@@ -1113,7 +1113,7 @@ export default function AdminPanel() {
                   <Save size={14} className="mr-1.5" /> Salvar Centurion Pay
                 </Button>
                 <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('Centurion Pay')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
-                  <Zap size={14} className="mr-1.5" /> Testar Centurion Pay (R$ 1,00)
+                  <Zap size={14} className="mr-1.5" /> Testar Centurion Pay (R$ 44,90)
                 </Button>
               </div>
             </Card>
@@ -1160,7 +1160,7 @@ export default function AdminPanel() {
                   <Save size={14} className="mr-1.5" /> Salvar Iron Pay
                 </Button>
                 <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('Iron Pay')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
-                  <Zap size={14} className="mr-1.5" /> Testar Iron Pay (R$ 1,00)
+                  <Zap size={14} className="mr-1.5" /> Testar Iron Pay (R$ 44,90)
                 </Button>
               </div>
             </Card>
@@ -1219,7 +1219,7 @@ export default function AdminPanel() {
                   <Save size={14} className="mr-1.5" /> Salvar Sim Payout
                 </Button>
                 <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('Sim Payout')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
-                  <Zap size={14} className="mr-1.5" /> Testar Sim Payout (R$ 1,00)
+                  <Zap size={14} className="mr-1.5" /> Testar Sim Payout (R$ 44,90)
                 </Button>
               </div>
             </Card>
@@ -1305,7 +1305,7 @@ export default function AdminPanel() {
                   <Save size={14} className="mr-1.5" /> Salvar PayEvo
                 </Button>
                 <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('PayEvo')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
-                  <Zap size={14} className="mr-1.5" /> Testar PayEvo (R$ 1,00)
+                  <Zap size={14} className="mr-1.5" /> Testar PayEvo (R$ 44,90)
                 </Button>
               </div>
             </Card>
