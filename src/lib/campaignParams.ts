@@ -9,8 +9,8 @@ const TRACKED_PARAMS = [
   'gclid', 'wbraid', 'gbraid', 'ref_id',
   'cck', 'tck', 'gck', 'cr', 'plc', 'mtx', 'rdn', 'kw',
   'cpc', 'disp', 'int', 'loc', 'net', 'dev', 'xgo',
-  // Facebook
-  'fbclid',
+  // Facebook Ads (via cloaker)
+  'fbclid', 'cname', 'domain', 'placement', 'adset', 'adname', 'site',
   // TikTok
   'ttclid',
   // UTM standard
