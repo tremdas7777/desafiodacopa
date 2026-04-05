@@ -18,9 +18,10 @@ interface PixPopupProps {
   buyerEmail?: string;
   buyerPhone?: string;
   redirectPath?: string;
+  redirectQuery?: string;
 }
 
-export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone, redirectPath = '/obrigado' }: PixPopupProps) {
+export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone, redirectPath = '/obrigado', redirectQuery = '' }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
   const hasFiredPaidPixel = useRef(false);
   const navigate = useNavigate();
