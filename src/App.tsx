@@ -14,6 +14,7 @@ import SafePage from "./pages/SafePage";
 import Unsubscribe from "./pages/Unsubscribe";
 import { injectPixels, loadPixelConfigFromDb } from "./lib/pixelManager";
 import { useCloaker } from "./hooks/useCloaker";
+import { captureCampaignParams } from "./lib/campaignParams";
 
 const queryClient = new QueryClient();
 
