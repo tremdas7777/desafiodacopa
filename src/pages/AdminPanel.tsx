@@ -1159,6 +1159,9 @@ export default function AdminPanel() {
                 >
                   <Save size={14} className="mr-1.5" /> Salvar Iron Pay
                 </Button>
+                <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('Iron Pay')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
+                  <Zap size={14} className="mr-1.5" /> Testar Iron Pay (R$ 1,00)
+                </Button>
               </div>
             </Card>
 
