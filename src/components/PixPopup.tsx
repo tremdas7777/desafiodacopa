@@ -33,7 +33,7 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
         hasFiredPaidPixel.current = true;
         const cfg = getPixelConfig();
         // If onlyPaid is ON, this is the moment to fire. If OFF, fire again for "approved" tracking.
-        fireConversionEvent('Purchase', { value: amount, currency: 'BRL' });
+        fireConversionEvent('Purchase', { value: amount, currency: 'BRL' }, { email: buyerEmail, phone: buyerPhone });
         clearInterval(interval);
       }
     }, 5000);
