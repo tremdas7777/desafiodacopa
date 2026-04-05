@@ -45,21 +45,9 @@ Deno.serve(async (req) => {
     const formattedAmount = (amount || 0).toFixed(2).replace('.', ',');
     const firstName = (buyerName || 'Cliente').split(' ')[0];
 
-    const message = `🏆 *Desafio da Copa - Centauro* 🏆
+    const message = `Centauro: Ola ${firstName}! Pedido gerado. Valor: R$ ${formattedAmount}. Copie o PIX e cole no app do banco: ${pixCode}`;
 
-Olá ${firstName}! Seu pedido foi gerado com sucesso! ⚽
-
-💰 *Valor:* R$ ${formattedAmount}
-
-📋 *Código PIX (Copia e Cola):*
-${pixCode}
-
-📱 Copie o código acima e cole no app do seu banco para finalizar o pagamento.
-
-⏰ O código expira em *30 minutos*. Pague agora e garanta seu prêmio!
-
-✅ A confirmação é automática após o pagamento.`;
-
+    // Send as SMS (no opt-in required)
     const response = await fetch(`${GATEWAY_URL}/Messages.json`, {
       method: 'POST',
       headers: {
@@ -68,8 +56,8 @@ ${pixCode}
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        To: `whatsapp:${phone}`,
-        From: 'whatsapp:+14155238886',
+        To: phone,
+        From: '+14155238886',
         Body: message,
       }),
     });
