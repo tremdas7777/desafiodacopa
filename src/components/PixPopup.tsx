@@ -39,7 +39,7 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
         clearInterval(interval);
         // Redirect to thank you page after a short delay
         setTimeout(() => {
-          navigate('/obrigado');
+          navigate(redirectPath);
         }, 1500);
       }
     }, 5000);
