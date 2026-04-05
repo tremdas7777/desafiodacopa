@@ -85,17 +85,9 @@ serve(async (req) => {
       };
     }
 
-    // Add split if receiverId is provided
-    if (receiverId) {
-      body.split = [
-        {
-          recipientId: receiverId,
-          percentage: 100,
-          liable: true,
-          chargeProcessingFee: true,
-        },
-      ];
-    }
+    // PayEvo já aplica o split padrão da conta automaticamente.
+    // Enviar split manualmente nessa integração retorna erro de UUID undefined,
+    // então não enviamos esse campo para não quebrar a criação do PIX.
 
     console.log('PayEvo request body:', JSON.stringify(body));
 
