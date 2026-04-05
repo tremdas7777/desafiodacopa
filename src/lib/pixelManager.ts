@@ -273,7 +273,7 @@ export function injectPixels(config?: PixelConfig) {
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      ${gtagIds.map(id => `gtag('config', '${id}');`).join('\n      ')}
+      ${gtagIds.map(id => `gtag('config', '${id}', { cookie_domain: 'none', cookie_flags: 'SameSite=None;Secure', send_page_view: true });`).join('\n      ')}
     `;
     document.head.appendChild(gtagInit);
   }
