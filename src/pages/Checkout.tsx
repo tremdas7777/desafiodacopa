@@ -259,10 +259,8 @@ export default function Checkout() {
     }
 
     trackEvent('purchase');
-    const pxCfg = getPixelConfig();
-    if (!pxCfg.onlyPaid) {
-      fireConversionEvent('Purchase', { value: 44.90, currency: 'BRL' }, { email, phone: telefone });
-    }
+    // Purchase conversion is fired ONLY when payment is confirmed (in PixPopup or server-side webhook)
+    // Never fire Purchase here - the user hasn't paid yet
 
     const gatewayConfig = await fetchPaymentGatewayConfig();
     let activeGateway = gatewayConfig.activeGateway;
