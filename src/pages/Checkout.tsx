@@ -918,6 +918,26 @@ export default function Checkout() {
                 <div>
                   <label className="text-xs font-bold text-foreground mb-2 block">Método de Envio</label>
                   <div className="space-y-3">
+                    {/* Retirada na Loja - Indisponível */}
+                    <div
+                      onClick={() => {
+                        setShowStoreError(true);
+                        setShippingMethod('sedex');
+                      }}
+                      className="flex items-center gap-3 p-3 rounded-lg border-2 border-border opacity-60 cursor-pointer transition-all relative"
+                    >
+                      <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/40 flex items-center justify-center" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-bold text-foreground line-through">Retirada na Loja Centauro</p>
+                          <span className="text-[9px] font-black text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">INDISPONÍVEL</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Temporariamente sem estoque para retirada</p>
+                      </div>
+                      <span className="text-sm font-black text-muted-foreground line-through">GRÁTIS</span>
+                    </div>
+
+                    {/* Correios SEDEX */}
                     <div
                       onClick={() => setShippingMethod('sedex')}
                       className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${shippingMethod === 'sedex' ? 'border-centauro-green bg-centauro-green/5' : 'border-border hover:border-muted-foreground/30'}`}
