@@ -1080,6 +1080,7 @@ export default function Checkout() {
         amount={shippingCost || 44.90}
         buyerEmail={email}
         buyerPhone={telefone}
+        redirectQuery={`?cor=${shirtColor}`}
       />
     </div>
   );

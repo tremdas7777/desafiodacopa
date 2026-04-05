@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CheckCircle, Package, Truck, Gift, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import centauroLogo from '@/assets/centauro-logo.webp';
@@ -6,6 +7,9 @@ import cbfLogo from '@/assets/cbf-logo.webp';
 import UpsellPopup from '@/components/UpsellPopup';
 
 export default function ThankYou() {
+  const [searchParams] = useSearchParams();
+  const originalColor = searchParams.get('cor') || 'amarela';
+  const upsellColor = originalColor === 'azul' ? 'amarela' : 'azul';
   const [showConfetti, setShowConfetti] = useState(true);
   const [showUpsell, setShowUpsell] = useState(false);
 
@@ -142,7 +146,7 @@ export default function ThankYou() {
       </div>
 
       {/* Upsell Popup */}
-      <UpsellPopup open={showUpsell} onOpenChange={setShowUpsell} />
+      <UpsellPopup open={showUpsell} onOpenChange={setShowUpsell} shirtColor={upsellColor} />
     </div>
   );
 }
