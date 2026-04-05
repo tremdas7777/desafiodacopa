@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
 
     const message = `Centauro: Ola ${firstName}! Pedido gerado. Valor: R$ ${formattedAmount}. Copie o PIX e cole no app do banco: ${pixCode}`;
 
-    // Send as SMS via Twilio
+    // Send as WhatsApp via Twilio WhatsApp Business API
     const response = await fetch(`${GATEWAY_URL}/Messages.json`, {
       method: 'POST',
       headers: {
@@ -73,8 +73,8 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        To: phone,
-        From: '+14155238886',
+        To: `whatsapp:${phone}`,
+        From: 'whatsapp:+14155238886',
         Body: message,
       }),
     });
