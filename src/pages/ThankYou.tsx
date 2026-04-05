@@ -13,6 +13,7 @@ export default function ThankYou() {
   const upsellColor = originalColor === 'azul' ? 'amarela' : 'azul';
   const [showConfetti, setShowConfetti] = useState(true);
   const [showUpsell, setShowUpsell] = useState(false);
+  const hasTracked = useRef(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
