@@ -198,46 +198,55 @@ export default function AdminFinanceiro() {
             {p.label}
           </button>
         ))}
-      </div>
 
-      {/* Custom date range */}
-      {period === 'custom' && (
-        <div className="flex items-center gap-2 mb-4">
-          <Popover open={showDatePicker === 'from'} onOpenChange={(o) => setShowDatePicker(o ? 'from' : null)}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="text-xs gap-1.5">
-                <Calendar size={12} />
-                {dateFrom ? format(dateFrom, 'dd/MM/yyyy') : 'Data início'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={dateFrom}
-                onSelect={(d) => { setDateFrom(d); setShowDatePicker(null); }}
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-          <span className="text-xs text-muted-foreground">até</span>
-          <Popover open={showDatePicker === 'to'} onOpenChange={(o) => setShowDatePicker(o ? 'to' : null)}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="text-xs gap-1.5">
-                <Calendar size={12} />
-                {dateTo ? format(dateTo, 'dd/MM/yyyy') : 'Data fim'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={dateTo}
-                onSelect={(d) => { setDateTo(d); setShowDatePicker(null); }}
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      )}
+        <span className="text-muted-foreground mx-1">|</span>
+
+        <Popover open={showDatePicker === 'from'} onOpenChange={(o) => setShowDatePicker(o ? 'from' : null)}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn("text-xs gap-1.5", period === 'custom' && "border-primary")}
+              onClick={() => setPeriod('custom')}
+            >
+              <Calendar size={12} />
+              {dateFrom ? format(dateFrom, 'dd/MM/yyyy') : 'De'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarComponent
+              mode="single"
+              selected={dateFrom}
+              onSelect={(d) => { setDateFrom(d); setPeriod('custom'); setShowDatePicker('to'); }}
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+
+        <span className="text-xs text-muted-foreground">até</span>
+
+        <Popover open={showDatePicker === 'to'} onOpenChange={(o) => setShowDatePicker(o ? 'to' : null)}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn("text-xs gap-1.5", period === 'custom' && "border-primary")}
+              onClick={() => setPeriod('custom')}
+            >
+              <Calendar size={12} />
+              {dateTo ? format(dateTo, 'dd/MM/yyyy') : 'Até'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarComponent
+              mode="single"
+              selected={dateTo}
+              onSelect={(d) => { setDateTo(d); setPeriod('custom'); setShowDatePicker(null); }}
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
