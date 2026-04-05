@@ -302,7 +302,7 @@ export default function QuizHome() {
       setShowResult(false);
       setIsCorrect(false);
     } else {
-      if (!hasTrackedQuizComplete.current) { trackEvent('quiz_completed'); hasTrackedQuizComplete.current = true; } playRevealSound(); setShowAnimation(true);
+      if (!hasTrackedQuizComplete.current) { trackEvent('quiz_completed'); fireConversionEvent('Lead', { content_name: 'Quiz Completed', value: 44.90, currency: 'BRL' }); hasTrackedQuizComplete.current = true; } playRevealSound(); setShowAnimation(true);
     }
   };
 
