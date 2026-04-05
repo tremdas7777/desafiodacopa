@@ -54,6 +54,7 @@ const defaultConfig: PaymentGatewayConfig = {
   centurionpay: { secretKey: '', companyId: '', enabled: false },
   ironpay: { apiToken: '', enabled: false },
   simpayout: { clientId: '', clientSecret: '', enabled: false },
+  payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
 };
 
 // In-memory cache to avoid repeated DB calls within the same page
