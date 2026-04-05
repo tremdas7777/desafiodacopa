@@ -10,7 +10,7 @@ import AdminPanel from "./pages/AdminPanel";
 import ThankYou from "./pages/ThankYou";
 import NotFound from "./pages/NotFound";
 import SafePage from "./pages/SafePage";
-import { injectPixels } from "./lib/pixelManager";
+import { injectPixels, loadPixelConfigFromDb } from "./lib/pixelManager";
 import { useCloaker } from "./hooks/useCloaker";
 
 const queryClient = new QueryClient();
