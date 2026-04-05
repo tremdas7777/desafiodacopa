@@ -406,7 +406,7 @@ export default function QuizHome() {
   }
 
   if (showAnimation) {
-    return <LoadingAnimation onComplete={() => { setShowAnimation(false); setShowScratchCard(true); trackEvent('scratch_card'); }} />;
+    return <LoadingAnimation onComplete={() => { setShowAnimation(false); setShowScratchCard(true); trackEvent('scratch_card'); fireConversionEvent('AddToCart', { content_name: 'Camisa Seleção', value: 44.90, currency: 'BRL' }); }} />;
   }
 
   if (showScratchCard) {
