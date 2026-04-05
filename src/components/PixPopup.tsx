@@ -17,9 +17,10 @@ interface PixPopupProps {
   amount: number;
   buyerEmail?: string;
   buyerPhone?: string;
+  redirectPath?: string;
 }
 
-export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone }: PixPopupProps) {
+export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone, redirectPath = '/obrigado' }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
   const hasFiredPaidPixel = useRef(false);
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
         clearInterval(interval);
         // Redirect to thank you page after a short delay
         setTimeout(() => {
-          navigate('/obrigado');
+          navigate(redirectPath);
         }, 1500);
       }
     }, 5000);

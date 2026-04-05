@@ -8,6 +8,7 @@ import QuizHome from "./pages/QuizHome";
 import Checkout from "./pages/Checkout";
 import AdminPanel from "./pages/AdminPanel";
 import ThankYou from "./pages/ThankYou";
+import ThankYouUpsell from "./pages/ThankYouUpsell";
 import NotFound from "./pages/NotFound";
 import SafePage from "./pages/SafePage";
 import Unsubscribe from "./pages/Unsubscribe";
@@ -54,6 +55,7 @@ const App = () => {
           <Route path="/checkout" element={<CloakedRoute><Checkout /></CloakedRoute>} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/obrigado" element={<ThankYou />} />
+          <Route path="/obrigado-upsell" element={<ThankYouUpsell />} />
           <Route path="/safe" element={<SafePage />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="*" element={<NotFound />} />
