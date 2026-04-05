@@ -129,9 +129,9 @@ export default function AdminPanel() {
 
   const handleClearStats = async () => { await clearFunnelEvents(); const s = await getFunnelStats(period); setStats(s); };
 
-  const handleSavePixels = () => {
-    savePixelConfig(pixelConfig);
-    setPixelMessage('Pixels salvos e ativados com sucesso!');
+  const handleSavePixels = async () => {
+    await savePixelConfig(pixelConfig);
+    setPixelMessage('Pixels salvos no banco de dados e ativados com sucesso!');
     setTimeout(() => setPixelMessage(''), 3000);
   };
 
