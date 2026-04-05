@@ -6,9 +6,9 @@ import cbfLogo from '@/assets/cbf-logo.webp';
 import camisaImg from '@/assets/camisa-brasil-hero.webp';
 import albumImg from '@/assets/album-copa-hero.webp';
 import bolaImg from '@/assets/bola-copa-2026.webp';
-import valeImg from '@/assets/cartao-presente-centauro.png';
-import chuteiraImg from '@/assets/chuteira-copa.png';
-import caixaImg from '@/assets/caixa-surpresa-centauro.png';
+import valeImg from '@/assets/cartao-presente-centauro.webp';
+import chuteiraImg from '@/assets/chuteira-copa.webp';
+import caixaImg from '@/assets/caixa-surpresa-centauro.webp';
 
 interface ScratchItem {
   id: string;
