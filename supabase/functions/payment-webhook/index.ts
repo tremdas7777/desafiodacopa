@@ -205,11 +205,15 @@ async function fireServerPixelConversions(
 
 // --- Status helpers ---
 function normalizeStatus(raw: any): string {
-  const s = String(raw || '').toLowerCase();
+  const s = String(raw || '').toLowerCase().trim();
+  // Only these exact values should map to 'paid'
   if (['paid', 'approved', 'completed', 'confirmed', 'captured'].includes(s)) return 'paid';
   if (['refunded', 'chargedback', 'chargeback'].includes(s)) return 'refunded';
   if (['expired', 'cancelled', 'canceled'].includes(s)) return 'expired';
-  return s || 'pending';
+  if (['pending', 'waiting_payment', 'processing', 'created', 'generated'].includes(s)) return 'pending';
+  // Unknown status → do NOT default to something that could be interpreted as paid
+  console.log(`[payment-webhook] Unknown status value: "${s}", treating as pending`);
+  return 'pending';
 }
 
 function extractExternalId(body: any): string | null {
@@ -227,15 +231,40 @@ function extractExternalId(body: any): string | null {
 }
 
 function extractStatus(body: any): string {
-  const raw =
-    body.status ||
-    body.current_status ||
-    body.transaction_status ||
-    body.data?.status ||
-    body.object?.status ||
-    body.event?.replace('transaction_', '') ||
-    '';
-  console.log(`[payment-webhook] Raw status fields: status=${body.status}, current_status=${body.current_status}, transaction_status=${body.transaction_status}, data.status=${body.data?.status}, object.status=${body.object?.status}, event=${body.event}, → raw="${raw}"`);
+  // Try each known field, take the FIRST non-empty one
+  const candidates = [
+    { field: 'current_status', value: body.current_status },
+    { field: 'transaction_status', value: body.transaction_status },
+    { field: 'data.status', value: body.data?.status },
+    { field: 'object.status', value: body.object?.status },
+    { field: 'status', value: body.status },
+  ];
+
+  // 'event' field (e.g. "transaction_paid") is a special case
+  const eventStatus = body.event ? body.event.replace('transaction_', '') : undefined;
+  if (eventStatus) {
+    candidates.push({ field: 'event', value: eventStatus });
+  }
+
+  let raw = '';
+  let sourceField = 'none';
+  for (const c of candidates) {
+    if (c.value && String(c.value).trim()) {
+      raw = String(c.value).trim();
+      sourceField = c.field;
+      break;
+    }
+  }
+
+  console.log(`[payment-webhook] Status extraction: field="${sourceField}", raw="${raw}", all_fields=${JSON.stringify({
+    status: body.status,
+    current_status: body.current_status,
+    transaction_status: body.transaction_status,
+    data_status: body.data?.status,
+    object_status: body.object?.status,
+    event: body.event,
+  })}`);
+
   return normalizeStatus(raw);
 }
 
