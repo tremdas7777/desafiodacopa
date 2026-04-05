@@ -8,7 +8,7 @@ import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, Trendi
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { getFunnelStats, clearFunnelEvents } from '@/lib/funnelTracking';
-import { getPixelConfig, savePixelConfig, type PixelConfig, type FacebookPixelEntry, type TikTokPixelEntry, type GoogleAdsEntry } from '@/lib/pixelManager';
+import { getPixelConfig, savePixelConfig, loadPixelConfigFromDb, type PixelConfig, type FacebookPixelEntry, type TikTokPixelEntry, type GoogleAdsEntry } from '@/lib/pixelManager';
 import { getWebhookConfig, saveWebhookConfig, fireWebhookEvent, syncWebhooksToDb, loadWebhooksFromDb, type WebhookConfig, type WebhookEntry } from '@/lib/webhookManager';
 import { getUtmifyConfig, saveUtmifyConfig, testUtmifyToken, type UtmifyConfig } from '@/lib/utmifyManager';
 import { fetchPaymentGatewayConfig, savePaymentGatewayConfig, type PaymentGatewayConfig } from '@/lib/paymentGateway';
@@ -78,7 +78,24 @@ export default function AdminPanel() {
     const saved = localStorage.getItem('checkoutUrl');
     if (saved) { setCheckoutUrl(saved); setNewCheckoutUrl(saved); }
     setExternalCheckout(localStorage.getItem('externalCheckout') === 'true');
-    setPixelConfig(getPixelConfig());
+    loadPixelConfigFromDb().then(async (cfg) => {
+      setPixelConfig(cfg);
+      // Auto-migrate: if DB is empty but localStorage has data, push to DB
+      const hasPixels = cfg.facebookPixels.length > 0 || cfg.tiktokPixels.length > 0 || cfg.googleAdsPixels.length > 0;
+      if (!hasPixels) {
+        try {
+          const raw = localStorage.getItem('pixel_config');
+          if (raw) {
+            const localCfg = JSON.parse(raw);
+            if (localCfg.facebookPixels?.length || localCfg.tiktokPixels?.length || localCfg.googleAdsPixels?.length) {
+              await savePixelConfig(localCfg);
+              setPixelConfig(localCfg);
+              console.log('[Pixels] Migrated localStorage config to database');
+            }
+          }
+        } catch { /* ignore */ }
+      }
+    });
     loadWebhooksFromDb().then(config => {
       setWebhookConfig(config);
       saveWebhookConfig(config); // sync to localStorage
@@ -129,9 +146,9 @@ export default function AdminPanel() {
 
   const handleClearStats = async () => { await clearFunnelEvents(); const s = await getFunnelStats(period); setStats(s); };
 
-  const handleSavePixels = () => {
-    savePixelConfig(pixelConfig);
-    setPixelMessage('Pixels salvos e ativados com sucesso!');
+  const handleSavePixels = async () => {
+    await savePixelConfig(pixelConfig);
+    setPixelMessage('Pixels salvos no banco de dados e ativados com sucesso!');
     setTimeout(() => setPixelMessage(''), 3000);
   };
 
