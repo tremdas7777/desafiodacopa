@@ -78,7 +78,7 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
     }
 
     const config: PaymentGatewayConfig = {
-      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout'].includes(data.active_gateway)
+      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'].includes(data.active_gateway)
         ? data.active_gateway
         : 'centurionpay') as PaymentGatewayConfig['activeGateway'],
       pagouai: {
@@ -104,6 +104,13 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
         clientId: (data as any).simpayout_client_id || '',
         clientSecret: (data as any).simpayout_client_secret || '',
         enabled: !!((data as any).simpayout_client_id && (data as any).simpayout_client_secret),
+      },
+      payevo: {
+        secretKey: (data as any).payevo_secret_key || '',
+        companyId: (data as any).payevo_company_id || '',
+        receiverId: (data as any).payevo_receiver_id || '',
+        apiKey: (data as any).payevo_api_key || '',
+        enabled: !!((data as any).payevo_secret_key),
       },
     };
 
