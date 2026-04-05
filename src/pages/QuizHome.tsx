@@ -61,7 +61,7 @@ const quizQuestions: Question[] = [
     id: 5,
     question: 'Contra qual seleção será o segundo jogo do Brasil na fase de grupos da Copa do Mundo 2026?',
     options: ['Haiti', 'Escócia', 'Marrocos', 'Colômbia'],
-    correctAnswer: 1,
+    correctAnswer: 0,
   },
   {
     id: 6,
