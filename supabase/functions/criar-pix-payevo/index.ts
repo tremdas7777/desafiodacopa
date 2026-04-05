@@ -72,6 +72,7 @@ serve(async (req) => {
           tangible: false,
         },
       ],
+      ...(companyId && { companyId }),
     };
 
     if (buyerName || buyerEmail || buyerDocument || buyerPhone) {
