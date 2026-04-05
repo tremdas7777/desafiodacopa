@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
+import { trackEvent } from '@/lib/funnelTracking';
 import PixPopup from '@/components/PixPopup';
 import camisaAzul from '@/assets/camisa-azul.webp';
 import camisaAmarela from '@/assets/camisa-brasil-hero.webp';
