@@ -281,16 +281,23 @@ export default function AdminFinanceiro() {
             <KpiCard
               icon={<DollarSign size={16} className="text-centauro-green" />}
               iconBg="bg-centauro-green/10"
-              label="Faturamento Bruto"
+              label="Faturamento Total"
               value={formatCurrency(stats.faturamentoBruto)}
               sub={`${stats.approvedCount} vendas aprovadas`}
             />
             <KpiCard
               icon={<TrendingUp size={16} className="text-primary" />}
               iconBg="bg-primary/10"
-              label="Faturamento Líquido"
-              value={formatCurrency(stats.faturamentoLiquido)}
-              sub={`Sem frete: ${formatCurrency(stats.freteTotal)}`}
+              label="Fretes Pagos"
+              value={formatCurrency(stats.freteTotal)}
+              sub={`${stats.approvedMainCount} pedidos principais`}
+            />
+            <KpiCard
+              icon={<ArrowUpRight size={16} className="text-centauro-green" />}
+              iconBg="bg-centauro-green/10"
+              label="Receita Upsell"
+              value={formatCurrency(stats.upsellTotal)}
+              sub={`${stats.approvedUpsellCount} upsells pagos`}
             />
             <KpiCard
               icon={<ShoppingCart size={16} className="text-centauro-gold" />}
@@ -300,7 +307,7 @@ export default function AdminFinanceiro() {
               sub={`${stats.approvedCount} aprovados`}
             />
             <KpiCard
-              icon={<ArrowUpRight size={16} className="text-centauro-green" />}
+              icon={<DollarSign size={16} className="text-centauro-green" />}
               iconBg="bg-centauro-green/10"
               label="Ticket Médio"
               value={formatCurrency(stats.ticketMedio)}
