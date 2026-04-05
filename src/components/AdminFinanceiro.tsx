@@ -102,12 +102,24 @@ export default function AdminFinanceiro() {
     const pending = filteredOrders.filter(o => o.status === 'pending' || o.status === 'waiting_payment');
     const cancelled = filteredOrders.filter(o => o.status === 'cancelled' || o.status === 'expired');
 
-    // O cliente paga apenas o frete (produto é "grátis"), então o faturamento real = shipping_cost_cents
-    // amount_cents é o valor do produto (não cobrado), shipping_cost_cents é o que é cobrado no PIX
-    const faturamentoBrutoCents = approved.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
-    const freteTotalCents = faturamentoBrutoCents; // tudo cobrado é frete
-    const faturamentoLiquidoCents = faturamentoBrutoCents; // líquido = bruto (não há taxa descontada)
-    const pendenteCents = pending.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
+    // Pedido principal: produto grátis, cobra só frete (shipping_cost_cents)
+    // Upsell: amount_cents com shipping=0 → cobra amount_cents
+    // Valor cobrado no PIX = se tem frete, é o frete; se não, é o amount_cents (upsell)
+    const getValorCobrado = (o: Order) => {
+      const frete = o.shipping_cost_cents || 0;
+      return frete > 0 ? frete : o.amount_cents;
+    };
+
+    const isUpsell = (o: Order) => (o.shipping_cost_cents || 0) === 0;
+
+    const approvedMain = approved.filter(o => !isUpsell(o));
+    const approvedUpsell = approved.filter(o => isUpsell(o));
+
+    const faturamentoBrutoCents = approved.reduce((sum, o) => sum + getValorCobrado(o), 0);
+    const freteTotalCents = approved.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
+    const upsellTotalCents = approvedUpsell.reduce((sum, o) => sum + o.amount_cents, 0);
+    const faturamentoLiquidoCents = faturamentoBrutoCents; // sem taxas descontadas
+    const pendenteCents = pending.reduce((sum, o) => sum + getValorCobrado(o), 0);
 
     const taxaAprovacao = filteredOrders.length > 0 ? (approved.length / filteredOrders.length) * 100 : 0;
     const taxaCancelamento = filteredOrders.length > 0 ? (cancelled.length / filteredOrders.length) * 100 : 0;
