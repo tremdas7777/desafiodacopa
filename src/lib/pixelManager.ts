@@ -406,7 +406,6 @@ function _fireCAPIOnly(eventName: string, data?: Record<string, unknown>, userDa
   });
 }
 
-}
 
 // Fire ONLY client-side pixel calls (used for replaying queued events where CAPI already fired)
 function _fireClientPixelsOnly(eventName: string, data?: Record<string, unknown>, eventId?: string) {
