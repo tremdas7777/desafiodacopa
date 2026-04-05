@@ -379,6 +379,7 @@ export default function Checkout() {
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
+        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
         console.error('PIX error:', err);
