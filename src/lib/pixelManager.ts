@@ -98,11 +98,11 @@ function markPixelsReady() {
     pixelReadyResolve();
     pixelReadyResolve = null;
   }
-  // Replay queued events
+  // Replay queued events — CLIENT-SIDE ONLY (CAPI already fired when queued)
   while (eventQueue.length > 0) {
     const ev = eventQueue.shift()!;
-    console.log(`[Pixels] Replaying queued event: ${ev.eventName}`);
-    _fireConversionEventNow(ev.eventName, ev.data, ev.userData, ev.eventId);
+    console.log(`[Pixels] Replaying queued event (client-only): ${ev.eventName}`);
+    _fireClientPixelsOnly(ev.eventName, ev.data, ev.eventId);
   }
 }
 
@@ -406,16 +406,58 @@ function _fireCAPIOnly(eventName: string, data?: Record<string, unknown>, userDa
   });
 }
 
-// Internal: fire all conversion events (client + CAPI) — only called when pixels are ready
+
+// Fire ONLY client-side pixel calls (used for replaying queued events where CAPI already fired)
+function _fireClientPixelsOnly(eventName: string, data?: Record<string, unknown>, eventId?: string) {
+  const cfg = getPixelConfig();
+  const dedupEventId = eventId || `${eventName}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  // Facebook - client pixel
+  if (cfg.facebookPixels.some(fb => fb.pixelId) && typeof (window as any).fbq === 'function') {
+    (window as any).fbq('track', eventName, data, { eventID: dedupEventId });
+    console.log(`[Pixels] fbq('track', '${eventName}') fired (replay)`);
+  }
+
+  // TikTok - client pixel
+  const tiktokEventMap: Record<string, string> = {
+    'Purchase': 'CompletePayment',
+    'InitiateCheckout': 'InitiateCheckout',
+    'AddToCart': 'AddToCart',
+    'ViewContent': 'ViewContent',
+    'Lead': 'SubmitForm',
+  };
+  const tiktokEventName = tiktokEventMap[eventName] || eventName;
+  if (cfg.tiktokPixels.some(tt => tt.pixelId) && typeof (window as any).ttq?.track === 'function') {
+    (window as any).ttq.track(tiktokEventName, data);
+    console.log(`[Pixels] ttq.track('${tiktokEventName}') fired (replay)`);
+  }
+
+  // Google Ads - client pixel
+  cfg.googleAdsPixels.forEach(ga => {
+    if (!ga.adsId || typeof (window as any).gtag !== 'function') return;
+    if (ga.adsLabel) {
+      (window as any).gtag('event', 'conversion', {
+        send_to: `${ga.adsId}/${ga.adsLabel}`,
+        transaction_id: dedupEventId,
+        ...data,
+      });
+      console.log(`[Pixels] gtag conversion sent (replay) to ${ga.adsId}/${ga.adsLabel}`);
+    } else {
+      (window as any).gtag('event', eventName === 'Purchase' ? 'conversion' : eventName, {
+        transaction_id: dedupEventId,
+        ...data,
+      });
+    }
+  });
+}
+
+// Internal: fire all conversion events (client + CAPI) — only called when pixels are ready AND event is fresh
 function _fireConversionEventNow(eventName: string, data?: Record<string, unknown>, userData?: { email?: string; phone?: string }, eventId?: string) {
   const cfg = getPixelConfig();
   const dedupEventId = eventId || `${eventName}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-  // Facebook - client pixel with event_id for dedup
-  if (cfg.facebookPixels.some(fb => fb.pixelId) && typeof (window as any).fbq === 'function') {
-    (window as any).fbq('track', eventName, data, { eventID: dedupEventId });
-    console.log(`[Pixels] fbq('track', '${eventName}') fired`);
-  }
+  // Client-side pixels
+  _fireClientPixelsOnly(eventName, data, dedupEventId);
 
   // Facebook - Conversions API for each pixel with token
   cfg.facebookPixels.forEach(fb => {
@@ -443,7 +485,7 @@ function _fireConversionEventNow(eventName: string, data?: Record<string, unknow
     });
   });
 
-  // TikTok event name mapping
+  // TikTok - Events API for each pixel with token
   const tiktokEventMap: Record<string, string> = {
     'Purchase': 'CompletePayment',
     'InitiateCheckout': 'InitiateCheckout',
@@ -452,14 +494,6 @@ function _fireConversionEventNow(eventName: string, data?: Record<string, unknow
     'Lead': 'SubmitForm',
   };
   const tiktokEventName = tiktokEventMap[eventName] || eventName;
-
-  // TikTok - client pixel
-  if (cfg.tiktokPixels.some(tt => tt.pixelId) && typeof (window as any).ttq?.track === 'function') {
-    (window as any).ttq.track(tiktokEventName, data);
-    console.log(`[Pixels] ttq.track('${tiktokEventName}') fired`);
-  }
-
-  // TikTok - Events API for each pixel with token
   cfg.tiktokPixels.forEach(tt => {
     if (!tt.pixelId || !tt.accessToken) return;
     const ttp = getCookie('_ttp');
@@ -483,24 +517,5 @@ function _fireConversionEventNow(eventName: string, data?: Record<string, unknow
       },
       body: JSON.stringify(eventData),
     }).catch(err => console.error('TikTok Events API error:', err));
-  });
-
-  // Google Ads - conversion for each pixel
-  cfg.googleAdsPixels.forEach(ga => {
-    if (!ga.adsId || typeof (window as any).gtag !== 'function') return;
-    if (ga.adsLabel) {
-      (window as any).gtag('event', 'conversion', {
-        send_to: `${ga.adsId}/${ga.adsLabel}`,
-        transaction_id: dedupEventId,
-        ...data,
-      });
-      console.log(`[Pixels] gtag conversion sent to ${ga.adsId}/${ga.adsLabel}`);
-    } else {
-      (window as any).gtag('event', eventName === 'Purchase' ? 'conversion' : eventName, {
-        transaction_id: dedupEventId,
-        ...data,
-      });
-      console.log(`[Pixels] gtag event '${eventName}' fired`);
-    }
   });
 }
