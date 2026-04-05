@@ -18,7 +18,7 @@ interface PixPopupProps {
   buyerPhone?: string;
 }
 
-export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount }: PixPopupProps) {
+export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
   const hasFiredPaidPixel = useRef(false);
 
