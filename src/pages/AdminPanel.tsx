@@ -60,6 +60,52 @@ export default function AdminPanel() {
     payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
   });
   const [gatewayMessage, setGatewayMessage] = useState('');
+  const [gatewayTesting, setGatewayTesting] = useState(false);
+
+  const testGateway = async (gatewayName: string) => {
+    setGatewayTesting(true);
+    setGatewayMessage(`⏳ Testando ${gatewayName}...`);
+    try {
+      const bodyMap: Record<string, Record<string, any>> = {
+        'Pagou.ai': { publicKey: gatewayConfig.pagouai.publicKey, secretKey: gatewayConfig.pagouai.secretKey },
+        'Vennox': { secretKey: gatewayConfig.vennox.secretKey, companyId: gatewayConfig.vennox.companyId },
+        'Centurion Pay': { secretKey: gatewayConfig.centurionpay.secretKey, companyId: gatewayConfig.centurionpay.companyId },
+        'Iron Pay': { apiToken: gatewayConfig.ironpay.apiToken },
+        'Sim Payout': { clientId: gatewayConfig.simpayout.clientId, clientSecret: gatewayConfig.simpayout.clientSecret },
+        'PayEvo': { secretKey: gatewayConfig.payevo.secretKey, companyId: gatewayConfig.payevo.companyId, receiverId: gatewayConfig.payevo.receiverId, apiKey: gatewayConfig.payevo.apiKey },
+      };
+      const fnMap: Record<string, string> = {
+        'Pagou.ai': 'criar-pix',
+        'Vennox': 'criar-pix-vennox',
+        'Centurion Pay': 'criar-pix-centurionpay',
+        'Iron Pay': 'criar-pix-ironpay',
+        'Sim Payout': 'criar-pix-simpayout',
+        'PayEvo': 'criar-pix-payevo',
+      };
+      const { data, error } = await supabase.functions.invoke(fnMap[gatewayName], {
+        body: {
+          ...bodyMap[gatewayName],
+          amount: 1.00,
+          buyerName: 'Teste Admin',
+          buyerEmail: 'teste-admin@teste.com',
+          buyerDocument: '00000000000',
+          buyerPhone: '11999999999',
+          metadata: { address: 'Rua Teste', addressNumber: '1', neighborhood: 'Centro', city: 'São Paulo', state: 'SP', cep: '01001000', shippingMethod: 'sedex', shippingCostCents: 100, itemsDescription: 'Teste Admin' },
+        },
+      });
+      if (error) throw error;
+      if (data?.pix_code) {
+        setGatewayMessage(`✅ ${gatewayName} OK! PIX gerado (pedido ${data.order_id || 'criado'})`);
+      } else {
+        setGatewayMessage(`⚠️ ${gatewayName} respondeu mas sem código PIX. Verifique as credenciais.`);
+      }
+    } catch (err: any) {
+      console.error(`${gatewayName} test error:`, err);
+      setGatewayMessage(`❌ Erro no teste ${gatewayName}: ${err.message || 'Erro desconhecido'}`);
+    }
+    setGatewayTesting(false);
+    setTimeout(() => setGatewayMessage(''), 8000);
+  };
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
