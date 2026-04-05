@@ -59,6 +59,8 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    const webhookUrl = `${supabaseUrl}/functions/v1/payment-webhook`;
+
     // Basic Auth: base64(secretKey:x)
     const authHeader = 'Basic ' + toBase64(`${clientSecret}:x`);
 
@@ -67,6 +69,7 @@ Deno.serve(async (req) => {
     const txBody: Record<string, unknown> = {
       amount: Math.round(amount * 100),
       paymentMethod: 'pix',
+      postbackUrl: webhookUrl,
       pix: {
         expiresIn: 3600,
       },
