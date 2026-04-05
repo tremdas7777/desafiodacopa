@@ -72,10 +72,11 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
         centurionpay: !!gatewayConfig.centurionpay?.secretKey?.trim() && !!gatewayConfig.centurionpay?.companyId?.trim(),
         ironpay: !!gatewayConfig.ironpay?.apiToken?.trim(),
         simpayout: !!gatewayConfig.simpayout?.clientId?.trim() && !!gatewayConfig.simpayout?.clientSecret?.trim(),
+        payevo: !!gatewayConfig.payevo?.secretKey?.trim() && !!gatewayConfig.payevo?.companyId?.trim(),
       };
 
       if (!hasKeys[activeGateway]) {
-        const fallback = (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout'] as const).find(gw => hasKeys[gw]);
+        const fallback = (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'] as const).find(gw => hasKeys[gw]);
         if (fallback) activeGateway = fallback;
       }
 
