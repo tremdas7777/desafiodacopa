@@ -18,7 +18,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-type FilterPeriod = 'hoje' | '3dias' | '7dias' | '15dias' | '30dias' | 'custom';
+type FilterPeriod = 'hoje' | 'ontem' | '3dias' | '7dias' | '15dias' | '30dias' | 'custom';
 
 interface Order {
   id: string;
@@ -61,6 +61,11 @@ export default function AdminFinanceiro() {
       switch (period) {
         case 'hoje':
           return created.toDateString() === now.toDateString();
+        case 'ontem': {
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          return created.toDateString() === yesterday.toDateString();
+        }
         case '3dias': {
           const d = new Date(now); d.setDate(d.getDate() - 3);
           return created >= d;
@@ -160,6 +165,7 @@ export default function AdminFinanceiro() {
 
   const periods: { id: FilterPeriod; label: string }[] = [
     { id: 'hoje', label: 'Hoje' },
+    { id: 'ontem', label: 'Ontem' },
     { id: '3dias', label: '3 dias' },
     { id: '7dias', label: '7 dias' },
     { id: '15dias', label: '15 dias' },
