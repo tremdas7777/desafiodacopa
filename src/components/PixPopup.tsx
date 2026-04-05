@@ -14,9 +14,11 @@ interface PixPopupProps {
   pixQrCodeBase64: string;
   orderId: string;
   amount: number;
+  buyerEmail?: string;
+  buyerPhone?: string;
 }
 
-export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount }: PixPopupProps) {
+export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
   const hasFiredPaidPixel = useRef(false);
 
@@ -31,7 +33,7 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
         hasFiredPaidPixel.current = true;
         const cfg = getPixelConfig();
         // If onlyPaid is ON, this is the moment to fire. If OFF, fire again for "approved" tracking.
-        fireConversionEvent('Purchase', { value: amount, currency: 'BRL' });
+        fireConversionEvent('Purchase', { value: amount, currency: 'BRL' }, { email: buyerEmail, phone: buyerPhone });
         clearInterval(interval);
       }
     }, 5000);
