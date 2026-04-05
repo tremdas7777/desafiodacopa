@@ -144,16 +144,24 @@ export default function AdminFinanceiro() {
 
   // Chart: faturamento por dia
   const chartData = useMemo(() => {
-    const dayMap: Record<string, { bruto: number; liquido: number; vendas: number }> = {};
+    const dayMap: Record<string, { frete: number; upsell: number; vendas: number }> = {};
+    const getValorCobrado = (o: Order) => {
+      const frete = o.shipping_cost_cents || 0;
+      return frete > 0 ? frete : o.amount_cents;
+    };
     filteredOrders.filter(o => o.status === 'paid').forEach(order => {
       const day = new Date(order.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-      if (!dayMap[day]) dayMap[day] = { bruto: 0, liquido: 0, vendas: 0 };
-      dayMap[day].bruto += (order.shipping_cost_cents || 0) / 100;
-      dayMap[day].liquido += (order.shipping_cost_cents || 0) / 100;
+      if (!dayMap[day]) dayMap[day] = { frete: 0, upsell: 0, vendas: 0 };
+      const isUpsell = (order.shipping_cost_cents || 0) === 0;
+      if (isUpsell) {
+        dayMap[day].upsell += order.amount_cents / 100;
+      } else {
+        dayMap[day].frete += (order.shipping_cost_cents || 0) / 100;
+      }
       dayMap[day].vendas += 1;
     });
     return Object.entries(dayMap)
-      .map(([dia, v]) => ({ dia, bruto: +v.bruto.toFixed(2), liquido: +v.liquido.toFixed(2), vendas: v.vendas }))
+      .map(([dia, v]) => ({ dia, frete: +v.frete.toFixed(2), upsell: +v.upsell.toFixed(2), vendas: v.vendas }))
       .reverse();
   }, [filteredOrders]);
 
