@@ -1,6 +1,6 @@
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const GATEWAY_URL = 'https://connector-gateway.lovable.dev/twilio';
@@ -25,7 +25,24 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { buyerName, buyerPhone, pixCode, amount } = await req.json();
+    const body = await req.json();
+
+    // Action to list phone numbers
+    if (body.action === 'list_numbers') {
+      const response = await fetch(`${GATEWAY_URL}/IncomingPhoneNumbers.json`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'X-Connection-Api-Key': TWILIO_API_KEY,
+        },
+      });
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { buyerName, buyerPhone, pixCode, amount } = body;
 
     if (!buyerPhone || !pixCode) {
       return new Response(JSON.stringify({ error: 'buyerPhone and pixCode are required' }), {
@@ -47,7 +64,7 @@ Deno.serve(async (req) => {
 
     const message = `Centauro: Ola ${firstName}! Pedido gerado. Valor: R$ ${formattedAmount}. Copie o PIX e cole no app do banco: ${pixCode}`;
 
-    // Send as SMS (no opt-in required)
+    // Send as SMS via Twilio
     const response = await fetch(`${GATEWAY_URL}/Messages.json`, {
       method: 'POST',
       headers: {
@@ -68,13 +85,13 @@ Deno.serve(async (req) => {
       throw new Error(`Twilio API error [${response.status}]: ${JSON.stringify(data)}`);
     }
 
-    console.log('WhatsApp message sent:', data.sid);
+    console.log('SMS sent:', data.sid);
 
     return new Response(JSON.stringify({ success: true, sid: data.sid }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
-    console.error('Error sending WhatsApp:', error);
+    console.error('Error sending SMS:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
