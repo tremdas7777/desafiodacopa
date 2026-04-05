@@ -41,7 +41,7 @@ serve(async (req) => {
   }
 
   try {
-    const { secretKey, companyId, receiverId, amount, buyerName, buyerEmail, buyerDocument, buyerPhone, metadata } = await req.json();
+    const { secretKey, companyId, receiverId, apiKey, amount, buyerName, buyerEmail, buyerDocument, buyerPhone, metadata } = await req.json();
 
     if (!secretKey || !amount) {
       return new Response(JSON.stringify({ error: 'secretKey e amount são obrigatórios' }), {
