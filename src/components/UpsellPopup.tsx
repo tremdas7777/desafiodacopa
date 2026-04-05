@@ -7,7 +7,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import PixPopup from '@/components/PixPopup';
-import camisaAzul from '@/assets/camisa-azul.png';
+import camisaAzul from '@/assets/camisa-azul.webp';
 import camisaAmarela from '@/assets/camisa-brasil-hero.webp';
 
 interface UpsellPopupProps {

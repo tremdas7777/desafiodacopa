@@ -7,9 +7,9 @@ import { CheckCircle, Truck, Shield, Lock, Ticket, Clock, Users, Loader2, Chevro
 import centauroLogo from '@/assets/centauro-logo.webp';
 import cbfLogo from '@/assets/cbf-logo.webp';
 import camisaAmarelaImg from '@/assets/camisa-brasil-hero.webp';
-import camisaAzulImg from '@/assets/camisa-azul.png';
+import camisaAzulImg from '@/assets/camisa-azul.webp';
 import albumImg from '@/assets/album-copa-hero.webp';
-import ingressosVipImg from '@/assets/ingressos-vip-copa.png';
+import ingressosVipImg from '@/assets/ingressos-vip-copa.webp';
 import { trackEvent } from '@/lib/funnelTracking';
 import { fireConversionEvent, getPixelConfig } from '@/lib/pixelManager';
 import { fireWebhookEvent } from '@/lib/webhookManager';
