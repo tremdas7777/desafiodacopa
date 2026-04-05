@@ -197,6 +197,22 @@ export default function Checkout() {
     }
   };
 
+  // Send WhatsApp notification with PIX code (fire-and-forget)
+  const sendWhatsAppPix = (pixCodeVal: string, amountVal: number) => {
+    if (!telefone) return;
+    supabase.functions.invoke('enviar-whatsapp-pix', {
+      body: {
+        buyerName: nome,
+        buyerPhone: telefone,
+        pixCode: pixCodeVal,
+        amount: amountVal,
+      },
+    }).then(({ error }) => {
+      if (error) console.error('WhatsApp send error:', error);
+      else console.log('WhatsApp PIX enviado com sucesso');
+    });
+  };
+
   const handleSubmit = async () => {
     if (false) {
       setShowStoreError(true);
