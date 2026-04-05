@@ -99,7 +99,7 @@ export default function AdminFinanceiro() {
 
   const stats = useMemo(() => {
     const approved = filteredOrders.filter(o => o.status === 'paid');
-    const pending = filteredOrders.filter(o => o.status === 'pending');
+    const pending = filteredOrders.filter(o => o.status === 'pending' || o.status === 'waiting_payment');
     const cancelled = filteredOrders.filter(o => o.status === 'cancelled' || o.status === 'expired');
 
     const faturamentoBrutoCents = approved.reduce((sum, o) => sum + o.amount_cents + (o.shipping_cost_cents || 0), 0);
