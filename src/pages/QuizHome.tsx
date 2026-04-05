@@ -262,10 +262,11 @@ export default function QuizHome() {
   const hasTrackedQuizComplete = useRef(false);
   const hasTrackedCheckout = useRef(false);
 
-  // Track visitor on mount
+  // Track visitor + ViewContent on mount
   useEffect(() => {
     if (!hasTrackedVisitor.current) {
       trackEvent('visitor');
+      fireConversionEvent('ViewContent', { content_name: 'Quiz Copa 2026', content_category: 'landing_page', value: 44.90, currency: 'BRL' });
       hasTrackedVisitor.current = true;
     }
   }, []);
@@ -301,7 +302,7 @@ export default function QuizHome() {
       setShowResult(false);
       setIsCorrect(false);
     } else {
-      if (!hasTrackedQuizComplete.current) { trackEvent('quiz_completed'); hasTrackedQuizComplete.current = true; } playRevealSound(); setShowAnimation(true);
+      if (!hasTrackedQuizComplete.current) { trackEvent('quiz_completed'); fireConversionEvent('Lead', { content_name: 'Quiz Completed', value: 44.90, currency: 'BRL' }); hasTrackedQuizComplete.current = true; } playRevealSound(); setShowAnimation(true);
     }
   };
 
@@ -405,7 +406,7 @@ export default function QuizHome() {
   }
 
   if (showAnimation) {
-    return <LoadingAnimation onComplete={() => { setShowAnimation(false); setShowScratchCard(true); trackEvent('scratch_card'); }} />;
+    return <LoadingAnimation onComplete={() => { setShowAnimation(false); setShowScratchCard(true); trackEvent('scratch_card'); fireConversionEvent('AddToCart', { content_name: 'Camisa Seleção', value: 44.90, currency: 'BRL' }); }} />;
   }
 
   if (showScratchCard) {
