@@ -10,6 +10,7 @@ export default function ThankYouUpsell() {
   const hasTracked = useRef(false);
 
   useEffect(() => {
+    if (!hasTracked.current) { trackEvent('thank_you_upsell'); hasTracked.current = true; }
     window.scrollTo(0, 0);
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#212121');
     document.documentElement.style.backgroundColor = '#212121';

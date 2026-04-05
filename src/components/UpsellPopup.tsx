@@ -133,6 +133,7 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
       setPixCode(data.pix_code || '');
       setPixQrCodeBase64(data.pix_qr_code_base64 || '');
       setPixOrderId(data.order_id || '');
+      trackEvent('upsell');
       onOpenChange(false);
       setShowPixPopup(true);
     } catch (err: any) {
