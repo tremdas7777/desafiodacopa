@@ -142,6 +142,10 @@ export async function savePaymentGatewayConfig(config: PaymentGatewayConfig): Pr
       ironpay_api_token: config.ironpay.apiToken,
       simpayout_client_id: config.simpayout.clientId,
       simpayout_client_secret: config.simpayout.clientSecret,
+      payevo_secret_key: config.payevo.secretKey,
+      payevo_company_id: config.payevo.companyId,
+      payevo_receiver_id: config.payevo.receiverId,
+      payevo_api_key: config.payevo.apiKey,
       updated_at: new Date().toISOString(),
     };
 

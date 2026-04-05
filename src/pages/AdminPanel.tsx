@@ -57,6 +57,7 @@ export default function AdminPanel() {
     centurionpay: { secretKey: '', companyId: '', enabled: false },
     ironpay: { apiToken: '', enabled: false },
     simpayout: { clientId: '', clientSecret: '', enabled: false },
+    payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
   });
   const [gatewayMessage, setGatewayMessage] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
