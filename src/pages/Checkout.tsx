@@ -253,6 +253,8 @@ export default function Checkout() {
   };
 
   const handleSubmit = async () => {
+    // Prevent duplicate submissions
+    if (pixLoading) return;
     if (false) {
       setShowStoreError(true);
       return;
