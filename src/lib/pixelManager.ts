@@ -253,25 +253,30 @@ export function injectPixels(config?: PixelConfig) {
     });
   }
 
-  // Google Ads
-  cfg.googleAdsPixels.forEach((ga, i) => {
-    if (!ga.adsId) return;
+  // Google Ads + GA4
+  const gtagIds: string[] = [];
+  cfg.googleAdsPixels.forEach(ga => { if (ga.adsId) gtagIds.push(ga.adsId); });
+  if (cfg.ga4MeasurementId) gtagIds.push(cfg.ga4MeasurementId);
+
+  if (gtagIds.length > 0) {
+    // Load gtag.js once with the first ID
     const gtagScript = document.createElement('script');
-    gtagScript.setAttribute('data-pixel-injected', `google-ads-lib-${i}`);
+    gtagScript.setAttribute('data-pixel-injected', 'google-gtag-lib');
     gtagScript.async = true;
-    gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${ga.adsId}`;
+    gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${gtagIds[0]}`;
     document.head.appendChild(gtagScript);
 
+    // Configure all IDs
     const gtagInit = document.createElement('script');
-    gtagInit.setAttribute('data-pixel-injected', `google-ads-init-${i}`);
+    gtagInit.setAttribute('data-pixel-injected', 'google-gtag-init');
     gtagInit.innerHTML = `
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', '${ga.adsId}');
+      ${gtagIds.map(id => `gtag('config', '${id}');`).join('\n      ')}
     `;
     document.head.appendChild(gtagInit);
-  });
+  }
 
   // Mark pixels as ready and replay queued events
   // Small delay to let injected scripts initialize (fbq, ttq, gtag)
