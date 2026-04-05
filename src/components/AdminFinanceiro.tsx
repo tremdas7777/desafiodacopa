@@ -65,6 +65,7 @@ export default function AdminFinanceiro() {
           const yesterday = new Date(now);
           yesterday.setDate(yesterday.getDate() - 1);
           return created.toDateString() === yesterday.toDateString();
+        }
         case '3dias': {
           const d = new Date(now); d.setDate(d.getDate() - 3);
           return created >= d;
