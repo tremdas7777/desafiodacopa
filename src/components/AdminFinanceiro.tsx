@@ -61,7 +61,11 @@ export default function AdminFinanceiro() {
       switch (period) {
         case 'hoje':
           return created.toDateString() === now.toDateString();
-        case '3dias': {
+        case 'ontem': {
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          return created.toDateString() === yesterday.toDateString();
+        }
           const d = new Date(now); d.setDate(d.getDate() - 3);
           return created >= d;
         }
