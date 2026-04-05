@@ -72,6 +72,7 @@ serve(async (req) => {
           tangible: false,
         },
       ],
+      ...(companyId && { companyId }),
     };
 
     if (buyerName || buyerEmail || buyerDocument || buyerPhone) {
@@ -84,17 +85,9 @@ serve(async (req) => {
       };
     }
 
-    // Add split if receiverId is provided
-    if (receiverId) {
-      body.split = [
-        {
-          recipientId: receiverId,
-          percentage: 100,
-          liable: true,
-          chargeProcessingFee: true,
-        },
-      ];
-    }
+    // PayEvo já aplica o split padrão da conta automaticamente.
+    // Enviar split manualmente nessa integração retorna erro de UUID undefined,
+    // então não enviamos esse campo para não quebrar a criação do PIX.
 
     console.log('PayEvo request body:', JSON.stringify(body));
 
@@ -126,7 +119,7 @@ serve(async (req) => {
 
     // Extract PIX code and QR code from response
     const pixCode = data.pix?.qrcode || data.pix?.qr_code || data.pix?.emv || data.pix_qr_code || data.qr_code || '';
-    const pixQrCodeBase64 = data.pix?.qrcodeBase64 || data.pix?.qr_code_base64 || data.pix_qr_code_url || data.qr_code_url || '';
+    const pixQrCodeBase64 = data.pix?.qrcodeBase64 || data.pix?.qr_code_base64 || data.pix_qr_code_base64 || data.pix_qr_code_url || data.qr_code_url || '';
 
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       external_id: data.id?.toString() || data.tid || null,
