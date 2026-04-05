@@ -1304,45 +1304,7 @@ export default function AdminPanel() {
                 >
                   <Save size={14} className="mr-1.5" /> Salvar PayEvo
                 </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    if (!gatewayConfig.payevo.secretKey?.trim()) {
-                      setGatewayMessage('Preencha a Chave Secreta do PayEvo antes de testar.');
-                      setTimeout(() => setGatewayMessage(''), 4000);
-                      return;
-                    }
-                    setGatewayMessage('⏳ Testando PayEvo...');
-                    try {
-                      const { data, error } = await supabase.functions.invoke('criar-pix-payevo', {
-                        body: {
-                          secretKey: gatewayConfig.payevo.secretKey,
-                          companyId: gatewayConfig.payevo.companyId,
-                          receiverId: gatewayConfig.payevo.receiverId,
-                          apiKey: gatewayConfig.payevo.apiKey,
-                          amount: 1.00,
-                          buyerName: 'Teste Admin',
-                          buyerEmail: 'teste-admin@teste.com',
-                          buyerDocument: '00000000000',
-                          buyerPhone: '11999999999',
-                          metadata: { address: 'Rua Teste', addressNumber: '1', neighborhood: 'Centro', city: 'São Paulo', state: 'SP', cep: '01001000', shippingMethod: 'sedex', shippingCostCents: 100, itemsDescription: 'Teste Admin PayEvo' },
-                        },
-                      });
-                      if (error) throw error;
-                      if (data?.pix_code) {
-                        setGatewayMessage(`✅ PayEvo OK! PIX gerado (pedido ${data.order_id || 'criado'}). Código: ${data.pix_code.substring(0, 40)}...`);
-                      } else {
-                        setGatewayMessage('⚠️ PayEvo respondeu mas sem código PIX. Verifique as credenciais.');
-                      }
-                    } catch (err: any) {
-                      console.error('PayEvo test error:', err);
-                      setGatewayMessage(`❌ Erro no teste PayEvo: ${err.message || 'Erro desconhecido'}`);
-                    }
-                    setTimeout(() => setGatewayMessage(''), 8000);
-                  }}
-                  className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs"
-                >
+                <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('PayEvo')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
                   <Zap size={14} className="mr-1.5" /> Testar PayEvo (R$ 1,00)
                 </Button>
               </div>
