@@ -60,6 +60,7 @@ ${pixCode}
 
 ✅ A confirmação é automática após o pagamento.`;
 
+    // Send as SMS (no opt-in required)
     const response = await fetch(`${GATEWAY_URL}/Messages.json`, {
       method: 'POST',
       headers: {
@@ -68,8 +69,8 @@ ${pixCode}
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        To: `whatsapp:${phone}`,
-        From: 'whatsapp:+14155238886',
+        To: phone,
+        From: '+14155238886',
         Body: message,
       }),
     });
