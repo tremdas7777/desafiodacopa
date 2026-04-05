@@ -229,6 +229,29 @@ export default function Checkout() {
     });
   };
 
+  // Send email notification with PIX code (fire-and-forget)
+  const sendEmailPix = (pixCodeVal: string, amountVal: number, orderId: string) => {
+    if (!email) return;
+    const colorLbl = shirtColor === 'azul' ? 'Azul' : 'Amarela';
+    supabase.functions.invoke('send-transactional-email', {
+      body: {
+        templateName: 'pix-notification',
+        recipientEmail: email,
+        idempotencyKey: `pix-notify-${orderId}`,
+        templateData: {
+          name: nome,
+          pixCode: pixCodeVal,
+          amount: amountVal.toFixed(2).replace('.', ','),
+          shirtColor: colorLbl,
+          shirtSize: shirtSize,
+        },
+      },
+    }).then(({ error }) => {
+      if (error) console.error('Email PIX send error:', error);
+      else console.log('Email PIX enviado com sucesso');
+    });
+  };
+
   const handleSubmit = async () => {
     if (false) {
       setShowStoreError(true);
@@ -304,6 +327,7 @@ export default function Checkout() {
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
         sendSmsPix(data.pix_code || '', shippingCost || 44.90);
+        sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
         console.error('PIX error:', err);
@@ -342,6 +366,7 @@ export default function Checkout() {
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
         sendSmsPix(data.pix_code || '', shippingCost || 44.90);
+        sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
         console.error('PIX error:', err);
@@ -380,6 +405,7 @@ export default function Checkout() {
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
         sendSmsPix(data.pix_code || '', shippingCost || 44.90);
+        sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
         console.error('PIX error:', err);
@@ -417,6 +443,7 @@ export default function Checkout() {
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
         sendSmsPix(data.pix_code || '', shippingCost || 44.90);
+        sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
@@ -454,6 +481,7 @@ export default function Checkout() {
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
         sendSmsPix(data.pix_code || '', shippingCost || 44.90);
+        sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
