@@ -98,11 +98,11 @@ function markPixelsReady() {
     pixelReadyResolve();
     pixelReadyResolve = null;
   }
-  // Replay queued events
+  // Replay queued events — CLIENT-SIDE ONLY (CAPI already fired when queued)
   while (eventQueue.length > 0) {
     const ev = eventQueue.shift()!;
-    console.log(`[Pixels] Replaying queued event: ${ev.eventName}`);
-    _fireConversionEventNow(ev.eventName, ev.data, ev.userData, ev.eventId);
+    console.log(`[Pixels] Replaying queued event (client-only): ${ev.eventName}`);
+    _fireClientPixelsOnly(ev.eventName, ev.data, ev.eventId);
   }
 }
 
