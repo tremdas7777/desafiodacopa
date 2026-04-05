@@ -17,6 +17,7 @@ import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import { supabase } from '@/integrations/supabase/client';
 import PixPopup from '@/components/PixPopup';
 import { findNearestStore, type CentauroStore } from '@/lib/centauroStores';
+import { getCampaignParams } from '@/lib/campaignParams';
 
 interface GoogleStore {
   name: string;
