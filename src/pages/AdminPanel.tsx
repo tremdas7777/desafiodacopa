@@ -582,24 +582,21 @@ export default function AdminPanel() {
               <p className="text-[9px] text-muted-foreground mt-1">Utmify → Integrações → Pixel → Copie o código HTML completo</p>
             </Card>
 
-            {/* Conversion Mode Toggle */}
-            <Card className="p-5 border border-border mt-6">
-              <div className="flex items-center justify-between">
+            {/* Conversion Mode Info */}
+            <Card className="p-5 border border-centauro-green/30 bg-centauro-green/5 mt-6">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🟢</span>
                 <div>
-                  <h3 className="font-black text-foreground text-sm">Modo de Conversão</h3>
+                  <h3 className="font-black text-foreground text-sm">Conversão Segura Ativada</h3>
                   <p className="text-muted-foreground text-[11px] mt-0.5">
-                    {pixelConfig.onlyPaid
-                      ? '🟢 Marcando conversão apenas quando PAGO (aprovado)'
-                      : '🟡 Marcando conversão em PENDENTE e PAGO'}
+                    Purchase dispara <strong>apenas quando o pagamento é confirmado</strong> (PIX pago).
+                    Eventos de funil (ViewContent, Lead, AddToCart, InitiateCheckout) disparam em cada etapa.
                   </p>
                 </div>
-                <Switch
-                  checked={pixelConfig.onlyPaid || false}
-                  onCheckedChange={(checked) => setPixelConfig(prev => ({ ...prev, onlyPaid: checked }))}
-                />
               </div>
               <p className="text-[9px] text-muted-foreground mt-2">
-                Desativado = dispara pixel em venda pendente (PIX gerado) e aprovada. Ativado = dispara pixel apenas quando o pagamento é confirmado.
+                ✅ Facebook CAPI (server-side) + Pixel (client-side) com event_id para deduplicação automática.
+                ✅ Google Ads conversion com transaction_id. ✅ Fila de eventos garante que nenhum evento se perde.
               </p>
             </Card>
 
