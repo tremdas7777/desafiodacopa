@@ -88,7 +88,7 @@ export default function AdminPanel() {
           amount: 44.90,
           buyerName: 'Teste Admin',
           buyerEmail: 'teste-admin@teste.com',
-          buyerDocument: '00000000000',
+          buyerDocument: '02692495322',
           buyerPhone: '11999999999',
           metadata: { address: 'Rua Teste', addressNumber: '1', neighborhood: 'Centro', city: 'São Paulo', state: 'SP', cep: '01001000', shippingMethod: 'sedex', shippingCostCents: 4490, itemsDescription: 'Teste Admin' },
         },
