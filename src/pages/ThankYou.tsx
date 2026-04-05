@@ -140,6 +140,9 @@ export default function ThankYou() {
           </p>
         </div>
       </div>
+
+      {/* Upsell Popup */}
+      <UpsellPopup open={showUpsell} onOpenChange={setShowUpsell} />
     </div>
   );
 }
