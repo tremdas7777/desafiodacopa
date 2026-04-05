@@ -38,6 +38,9 @@ export interface PixelConfig {
   utmifyHtml?: string;
   // Conversion mode: true = fire only on paid, false = fire on pending + paid
   onlyPaid?: boolean;
+  // GA4 Measurement Protocol (for Google Ads server-side conversions)
+  ga4MeasurementId?: string;
+  ga4ApiSecret?: string;
 }
 
 const STORAGE_KEY = 'pixel_config';
