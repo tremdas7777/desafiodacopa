@@ -24,7 +24,24 @@ interface PixPopupProps {
 export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone, redirectPath = '/obrigado', redirectQuery = '' }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
   const hasFiredPaidPixel = useRef(false);
+  const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutes in seconds
   const navigate = useNavigate();
+
+  // Countdown timer
+  useEffect(() => {
+    if (!open) {
+      setTimeLeft(5 * 60);
+      return;
+    }
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) { clearInterval(timer); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [open, timeLeft]);
 
   // Poll order status and fire pixel when paid, then redirect
   useEffect(() => {
@@ -92,6 +109,19 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Timer */}
+          <div className={`text-center rounded-lg p-3 ${timeLeft <= 60 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'}`}>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
+              ⏳ Tempo para pagamento
+            </p>
+            <p className={`text-2xl font-black tabular-nums ${timeLeft <= 60 ? 'text-red-600 animate-pulse' : 'text-orange-600'}`}>
+              {String(Math.floor(timeLeft / 60)).padStart(2, '0')}:{String(timeLeft % 60).padStart(2, '0')}
+            </p>
+            {timeLeft === 0 && (
+              <p className="text-xs text-red-600 font-bold mt-1">PIX expirado! Gere um novo código.</p>
+            )}
+          </div>
+
           {/* Amount */}
           <div className="text-center bg-secondary rounded-lg p-3">
             <p className="text-xs text-muted-foreground">Valor a pagar</p>
