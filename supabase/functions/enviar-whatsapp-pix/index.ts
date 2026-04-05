@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
       throw new Error(`Twilio API error [${response.status}]: ${JSON.stringify(data)}`);
     }
 
-    console.log('SMS sent:', data.sid);
+    console.log('WhatsApp sent:', data.sid);
 
     return new Response(JSON.stringify({ success: true, sid: data.sid }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
