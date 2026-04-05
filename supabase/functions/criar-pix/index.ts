@@ -55,6 +55,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    const webhookUrl = `${supabaseUrl}/functions/v1/payment-webhook`;
     const authHeader = 'Basic ' + btoa(`${secretKey}:x`);
 
     const amountCents = Math.round(amount * 100);
@@ -62,6 +63,7 @@ serve(async (req) => {
     const body: Record<string, unknown> = {
       paymentMethod: 'pix',
       amount: amountCents,
+      postbackUrl: webhookUrl,
       items: [
         {
           title: 'Panela Antiaderente 12L',
