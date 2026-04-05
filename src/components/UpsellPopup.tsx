@@ -8,15 +8,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import PixPopup from '@/components/PixPopup';
 import camisaAzul from '@/assets/camisa-azul.png';
+import camisaAmarela from '@/assets/camisa-brasil-hero.webp';
 
 interface UpsellPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  shirtColor: 'amarela' | 'azul' | string;
 }
 
 const UPSELL_AMOUNT = 29.90;
+const SIZES = ['P', 'M', 'G', 'GG'] as const;
 
-export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
+export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPopupProps) {
+  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [sizeError, setSizeError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPixPopup, setShowPixPopup] = useState(false);
@@ -26,12 +31,20 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
   const [buyerEmail, setBuyerEmail] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
 
+  const isAzul = shirtColor === 'azul';
+  const shirtImage = isAzul ? camisaAzul : camisaAmarela;
+  const colorLabel = isAzul ? 'Azul' : 'Amarela';
+
   const handleAccept = async () => {
+    if (!selectedSize) {
+      setSizeError(true);
+      return;
+    }
+    setSizeError(false);
     setLoading(true);
     setError('');
 
     try {
-      // Get the most recent paid order to reuse buyer info
       const { data: lastOrder } = await supabase
         .from('orders')
         .select('*')
@@ -78,9 +91,10 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
         itemsDescription: 'Panela Antiaderente 12L',
         isUpsell: true,
         originalOrderId: lastOrder.id,
+        shirtColor: colorLabel,
+        shirtSize: selectedSize,
       };
 
-      // Build body based on gateway
       let functionName = 'criar-pix';
       let body: Record<string, any> = {
         amount: UPSELL_AMOUNT,
@@ -113,14 +127,13 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
       }
 
       const { data, error: fnError } = await supabase.functions.invoke(functionName, { body });
-
       if (fnError) throw fnError;
 
       setPixCode(data.pix_code || '');
       setPixQrCodeBase64(data.pix_qr_code_base64 || '');
       setPixOrderId(data.order_id || '');
-      onOpenChange(false); // Close upsell popup
-      setShowPixPopup(true); // Open PIX popup
+      onOpenChange(false);
+      setShowPixPopup(true);
     } catch (err: any) {
       console.error('Upsell PIX error:', err);
       setError('Erro ao gerar PIX. Tente novamente.');
@@ -154,8 +167,8 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
             <div className="flex gap-4 items-center mb-4">
               <div className="w-24 h-24 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 overflow-hidden p-2">
                 <img
-                  src={camisaAzul}
-                  alt="Camisa Azul Seleção 2026"
+                  src={shirtImage}
+                  alt={`Camisa ${colorLabel} Seleção 2026`}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -164,7 +177,7 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
                   Adicione ao seu pedido
                 </p>
                 <h3 className="text-sm font-black text-foreground leading-tight">
-                  Camisa Azul Seleção Brasileira 2026
+                  Camisa {colorLabel} Seleção Brasileira 2026
                 </h3>
                 <div className="flex items-baseline gap-2 mt-1.5">
                   <span className="text-lg font-black text-centauro-green">R$ 29,90</span>
@@ -174,6 +187,33 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
                   67% OFF
                 </span>
               </div>
+            </div>
+
+            {/* Size Selection */}
+            <div className="mb-4">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
+                Escolha o tamanho
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {SIZES.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => { setSelectedSize(size); setSizeError(false); }}
+                    className={`py-2.5 rounded-lg text-sm font-bold border-2 transition-all ${
+                      selectedSize === size
+                        ? 'border-centauro-green bg-centauro-green/10 text-centauro-green'
+                        : sizeError
+                          ? 'border-destructive bg-destructive/5 text-foreground'
+                          : 'border-border bg-secondary text-foreground hover:border-muted-foreground'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+              {sizeError && (
+                <p className="text-destructive text-[11px] font-semibold mt-1.5">Selecione um tamanho</p>
+              )}
             </div>
 
             {/* Benefits */}
