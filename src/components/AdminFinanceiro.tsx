@@ -164,7 +164,6 @@ export default function AdminFinanceiro() {
     { id: '7dias', label: '7 dias' },
     { id: '15dias', label: '15 dias' },
     { id: '30dias', label: '30 dias' },
-    { id: 'custom', label: 'Personalizado' },
   ];
 
   return (
