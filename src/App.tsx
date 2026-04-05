@@ -14,6 +14,7 @@ import SafePage from "./pages/SafePage";
 import Unsubscribe from "./pages/Unsubscribe";
 import { injectPixels, loadPixelConfigFromDb } from "./lib/pixelManager";
 import { useCloaker } from "./hooks/useCloaker";
+import { captureCampaignParams } from "./lib/campaignParams";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,9 @@ const CloakedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   useEffect(() => {
+    // Capture campaign/tracking params from URL (gclid, fbclid, utm_*, etc.)
+    captureCampaignParams();
+
     // Load pixel config from database, then inject
     loadPixelConfigFromDb().then(cfg => {
       injectPixels(cfg);

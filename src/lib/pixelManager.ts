@@ -3,6 +3,7 @@
 // Events are queued until pixel scripts are ready, guaranteeing no events are lost
 
 import { supabase } from '@/integrations/supabase/client';
+import { getCampaignParams } from '@/lib/campaignParams';
 
 export interface FacebookPixelEntry {
   id: string;
@@ -309,9 +310,10 @@ async function buildFacebookUserData(userData?: { email?: string; phone?: string
   if (fbp) result.fbp = fbp;
   if (fbc) result.fbc = fbc;
   
-  // If no fbc cookie but fbclid in URL, build it
+  // If no fbc cookie, try fbclid from captured campaign params
   if (!fbc) {
-    const fbclid = new URLSearchParams(window.location.search).get('fbclid');
+    const params = getCampaignParams();
+    const fbclid = params.fbclid || new URLSearchParams(window.location.search).get('fbclid');
     if (fbclid) {
       result.fbc = `fb.1.${Date.now()}.${fbclid}`;
     }
@@ -432,21 +434,27 @@ function _fireClientPixelsOnly(eventName: string, data?: Record<string, unknown>
     console.log(`[Pixels] ttq.track('${tiktokEventName}') fired (replay)`);
   }
 
-  // Google Ads - client pixel
+  // Google Ads - client pixel (with gclid for enhanced conversions)
+  const campaignParams = getCampaignParams();
   cfg.googleAdsPixels.forEach(ga => {
     if (!ga.adsId || typeof (window as any).gtag !== 'function') return;
+    const conversionData: Record<string, any> = {
+      transaction_id: dedupEventId,
+      ...data,
+    };
+    // Pass gclid/wbraid/gbraid for better attribution
+    if (campaignParams.gclid) conversionData.gclid = campaignParams.gclid;
+    if (campaignParams.wbraid) conversionData.wbraid = campaignParams.wbraid;
+    if (campaignParams.gbraid) conversionData.gbraid = campaignParams.gbraid;
+
     if (ga.adsLabel) {
       (window as any).gtag('event', 'conversion', {
         send_to: `${ga.adsId}/${ga.adsLabel}`,
-        transaction_id: dedupEventId,
-        ...data,
+        ...conversionData,
       });
       console.log(`[Pixels] gtag conversion sent (replay) to ${ga.adsId}/${ga.adsLabel}`);
     } else {
-      (window as any).gtag('event', eventName === 'Purchase' ? 'conversion' : eventName, {
-        transaction_id: dedupEventId,
-        ...data,
-      });
+      (window as any).gtag('event', eventName === 'Purchase' ? 'conversion' : eventName, conversionData);
     }
   });
 }

@@ -17,6 +17,7 @@ import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import { supabase } from '@/integrations/supabase/client';
 import PixPopup from '@/components/PixPopup';
 import { findNearestStore, type CentauroStore } from '@/lib/centauroStores';
+import { getCampaignParams } from '@/lib/campaignParams';
 
 interface GoogleStore {
   name: string;
@@ -284,6 +285,7 @@ export default function Checkout() {
 
     console.log('Gateway config:', JSON.stringify({ activeGateway, original: gatewayConfig.activeGateway, pagouaiHasSecret: hasPagouaiKeys, vennoxHasSecret: hasVennoxKeys, centurionpayHasSecret: hasCenturionPayKeys, ironpayHasToken: hasIronPayKeys, simpayoutHasKeys: hasSimPayoutKeys }));
 
+    const campaignParams = getCampaignParams();
     const purchaseMetadata = {
       address: endereco,
       addressNumber: numero,
@@ -295,6 +297,7 @@ export default function Checkout() {
       shippingMethod: shippingMethod || 'sedex',
       shippingCostCents: Math.round((shippingCost || 44.90) * 100),
       itemsDescription: 'Panela Antiaderente 12L',
+      campaignParams,
     };
 
     if (activeGateway === 'pagouai') {
