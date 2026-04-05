@@ -310,9 +310,10 @@ async function buildFacebookUserData(userData?: { email?: string; phone?: string
   if (fbp) result.fbp = fbp;
   if (fbc) result.fbc = fbc;
   
-  // If no fbc cookie but fbclid in URL, build it
+  // If no fbc cookie, try fbclid from captured campaign params
   if (!fbc) {
-    const fbclid = new URLSearchParams(window.location.search).get('fbclid');
+    const params = getCampaignParams();
+    const fbclid = params.fbclid || new URLSearchParams(window.location.search).get('fbclid');
     if (fbclid) {
       result.fbc = `fb.1.${Date.now()}.${fbclid}`;
     }
