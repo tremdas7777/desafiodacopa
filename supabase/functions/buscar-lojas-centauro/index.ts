@@ -26,10 +26,32 @@ serve(async (req) => {
 
     const cleanCep = cep.replace(/\D/g, '');
 
-    // Step 1: Geocode the CEP to get lat/lng
-    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${cleanCep}&region=br&key=${GOOGLE_MAPS_API_KEY}`;
+    // Step 1: Use ViaCEP to get the full address for better geocoding
+    let geocodeQuery = cleanCep + ', Brazil';
+    try {
+      const viaCepRes = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const viaCepData = await viaCepRes.json();
+      if (!viaCepData.erro && viaCepData.localidade) {
+        // Build a full address for more accurate geocoding
+        const parts = [
+          viaCepData.logradouro,
+          viaCepData.bairro,
+          viaCepData.localidade,
+          viaCepData.uf,
+          'Brasil'
+        ].filter(Boolean);
+        geocodeQuery = parts.join(', ');
+      }
+    } catch {
+      // fallback to CEP-only geocoding
+    }
+
+    // Step 2: Geocode the address to get lat/lng
+    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(geocodeQuery)}&region=br&key=${GOOGLE_MAPS_API_KEY}`;
     const geocodeRes = await fetch(geocodeUrl);
     const geocodeData = await geocodeRes.json();
+
+    console.log('Geocode query:', geocodeQuery, 'Status:', geocodeData.status);
 
     if (geocodeData.status !== 'OK' || !geocodeData.results?.length) {
       return new Response(JSON.stringify({ stores: [], message: 'CEP não encontrado no Google Maps' }), {
@@ -39,10 +61,12 @@ serve(async (req) => {
 
     const { lat, lng } = geocodeData.results[0].geometry.location;
 
-    // Step 2: Nearby Search for Centauro stores, sorted by distance
+    // Step 3: Nearby Search for Centauro stores, sorted by distance
     const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?keyword=Centauro&location=${lat},${lng}&rankby=distance&type=store&language=pt-BR&key=${GOOGLE_MAPS_API_KEY}`;
     const placesRes = await fetch(placesUrl);
     const placesData = await placesRes.json();
+
+    console.log('Places status:', placesData.status, 'Results:', placesData.results?.length);
 
     if (placesData.status !== 'OK' || !placesData.results?.length) {
       return new Response(JSON.stringify({ stores: [] }), {
