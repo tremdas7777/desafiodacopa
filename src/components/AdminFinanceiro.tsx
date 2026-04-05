@@ -102,10 +102,12 @@ export default function AdminFinanceiro() {
     const pending = filteredOrders.filter(o => o.status === 'pending' || o.status === 'waiting_payment');
     const cancelled = filteredOrders.filter(o => o.status === 'cancelled' || o.status === 'expired');
 
-    const faturamentoBrutoCents = approved.reduce((sum, o) => sum + o.amount_cents + (o.shipping_cost_cents || 0), 0);
-    const freteTotalCents = approved.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
-    const faturamentoLiquidoCents = approved.reduce((sum, o) => sum + o.amount_cents, 0);
-    const pendenteCents = pending.reduce((sum, o) => sum + o.amount_cents + (o.shipping_cost_cents || 0), 0);
+    // O cliente paga apenas o frete (produto é "grátis"), então o faturamento real = shipping_cost_cents
+    // amount_cents é o valor do produto (não cobrado), shipping_cost_cents é o que é cobrado no PIX
+    const faturamentoBrutoCents = approved.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
+    const freteTotalCents = faturamentoBrutoCents; // tudo cobrado é frete
+    const faturamentoLiquidoCents = faturamentoBrutoCents; // líquido = bruto (não há taxa descontada)
+    const pendenteCents = pending.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
 
     const taxaAprovacao = filteredOrders.length > 0 ? (approved.length / filteredOrders.length) * 100 : 0;
     const taxaCancelamento = filteredOrders.length > 0 ? (cancelled.length / filteredOrders.length) * 100 : 0;
