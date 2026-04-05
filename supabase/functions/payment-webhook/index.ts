@@ -227,15 +227,16 @@ function extractExternalId(body: any): string | null {
 }
 
 function extractStatus(body: any): string {
-  return normalizeStatus(
+  const raw =
     body.status ||
     body.current_status ||
     body.transaction_status ||
     body.data?.status ||
     body.object?.status ||
     body.event?.replace('transaction_', '') ||
-    ''
-  );
+    '';
+  console.log(`[payment-webhook] Raw status fields: status=${body.status}, current_status=${body.current_status}, transaction_status=${body.transaction_status}, data.status=${body.data?.status}, object.status=${body.object?.status}, event=${body.event}, → raw="${raw}"`);
+  return normalizeStatus(raw);
 }
 
 // --- Main handler ---
