@@ -10,7 +10,9 @@ export interface TemplateEntry {
 }
 
 import { template as testEmail } from './test-email.tsx'
+import { template as pixNotification } from './pix-notification.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'test-email': testEmail,
+  'pix-notification': pixNotification,
 }
