@@ -235,8 +235,51 @@ export function injectPixels(config?: PixelConfig) {
   });
 }
 
+// Helper: read a cookie by name
+function getCookie(name: string): string | undefined {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : undefined;
+}
+
+// Helper: SHA-256 hash for PII (Facebook/TikTok requirement)
+async function sha256(value: string): Promise<string> {
+  const encoded = new TextEncoder().encode(value.trim().toLowerCase());
+  const hash = await crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Build hashed user_data for CAPI
+async function buildFacebookUserData(userData?: { email?: string; phone?: string }) {
+  const fbp = getCookie('_fbp');
+  const fbc = getCookie('_fbc');
+  
+  const result: Record<string, any> = {
+    client_user_agent: navigator.userAgent,
+  };
+
+  if (fbp) result.fbp = fbp;
+  if (fbc) result.fbc = fbc;
+  
+  // If no fbc cookie but fbclid in URL, build it
+  if (!fbc) {
+    const fbclid = new URLSearchParams(window.location.search).get('fbclid');
+    if (fbclid) {
+      result.fbc = `fb.1.${Date.now()}.${fbclid}`;
+    }
+  }
+
+  if (userData?.email) result.em = [await sha256(userData.email)];
+  if (userData?.phone) {
+    const phone = userData.phone.replace(/\D/g, '');
+    const fullPhone = phone.startsWith('55') ? phone : `55${phone}`;
+    result.ph = [await sha256(fullPhone)];
+  }
+
+  return result;
+}
+
 // Fire conversion events for ALL configured pixels
-export function fireConversionEvent(eventName: string, data?: Record<string, unknown>) {
+export function fireConversionEvent(eventName: string, data?: Record<string, unknown>, userData?: { email?: string; phone?: string }) {
   const cfg = getPixelConfig();
 
   // Facebook - client pixel (fires for all)
@@ -244,25 +287,27 @@ export function fireConversionEvent(eventName: string, data?: Record<string, unk
     (window as any).fbq('track', eventName, data);
   }
 
-  // Facebook - Conversions API for each pixel with token
+  // Facebook - Conversions API for each pixel with token (with cookie-based attribution)
   cfg.facebookPixels.forEach(fb => {
     if (!fb.pixelId || !fb.accessToken) return;
-    const eventData = {
-      data: [{
-        event_name: eventName,
-        event_time: Math.floor(Date.now() / 1000),
-        action_source: 'website',
-        event_source_url: window.location.href,
-        user_data: { client_user_agent: navigator.userAgent },
-        custom_data: data,
-      }],
-      access_token: fb.accessToken,
-    };
-    fetch(`https://graph.facebook.com/v19.0/${fb.pixelId}/events`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(eventData),
-    }).catch(err => console.error('Facebook CAPI error:', err));
+    buildFacebookUserData(userData).then(user_data => {
+      const eventData = {
+        data: [{
+          event_name: eventName,
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: 'website',
+          event_source_url: window.location.href,
+          user_data,
+          custom_data: data,
+        }],
+        access_token: fb.accessToken,
+      };
+      fetch(`https://graph.facebook.com/v19.0/${fb.pixelId}/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData),
+      }).catch(err => console.error('Facebook CAPI error:', err));
+    });
   });
 
   // TikTok event name mapping
@@ -279,16 +324,18 @@ export function fireConversionEvent(eventName: string, data?: Record<string, unk
     (window as any).ttq.track(tiktokEventName, data);
   }
 
-  // TikTok - Events API for each pixel with token
+  // TikTok - Events API for each pixel with token (with _ttp cookie)
   cfg.tiktokPixels.forEach(tt => {
     if (!tt.pixelId || !tt.accessToken) return;
-    const eventData = {
+    const ttp = getCookie('_ttp');
+    const eventData: Record<string, any> = {
       pixel_code: tt.pixelId,
       event: tiktokEventName,
       timestamp: new Date().toISOString(),
       context: {
         page: { url: window.location.href },
         user_agent: navigator.userAgent,
+        user: ttp ? { ttp } : undefined,
       },
       properties: data,
     };
@@ -302,7 +349,7 @@ export function fireConversionEvent(eventName: string, data?: Record<string, unk
     }).catch(err => console.error('TikTok Events API error:', err));
   });
 
-  // Google Ads - conversion for each pixel
+  // Google Ads - conversion for each pixel (gtag uses _gcl_aw cookie automatically)
   cfg.googleAdsPixels.forEach(ga => {
     if (!ga.adsId || typeof (window as any).gtag !== 'function') return;
     if (ga.adsLabel) {
