@@ -118,7 +118,7 @@ export default function AdminFinanceiro() {
     const faturamentoBrutoCents = approved.reduce((sum, o) => sum + getValorCobrado(o), 0);
     const freteTotalCents = approved.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
     const upsellTotalCents = approvedUpsell.reduce((sum, o) => sum + o.amount_cents, 0);
-    const faturamentoLiquidoCents = faturamentoBrutoCents; // sem taxas descontadas
+    const faturamentoLiquidoCents = filteredOrders.reduce((sum, o) => sum + getValorCobrado(o), 0);
     const pendenteCents = pending.reduce((sum, o) => sum + getValorCobrado(o), 0);
 
     const taxaAprovacao = filteredOrders.length > 0 ? (approved.length / filteredOrders.length) * 100 : 0;
@@ -289,9 +289,16 @@ export default function AdminFinanceiro() {
             <KpiCard
               icon={<DollarSign size={16} className="text-centauro-green" />}
               iconBg="bg-centauro-green/10"
-              label="Faturamento Total"
+              label="Faturamento Aprovado"
               value={formatCurrency(stats.faturamentoBruto)}
               sub={`${stats.approvedCount} vendas aprovadas`}
+            />
+            <KpiCard
+              icon={<TrendingUp size={16} className="text-primary" />}
+              iconBg="bg-primary/10"
+              label="Faturamento Líquido"
+              value={formatCurrency(stats.faturamentoLiquido)}
+              sub={`Todos os ${stats.totalOrders} pedidos do período`}
             />
             <KpiCard
               icon={<TrendingUp size={16} className="text-primary" />}
