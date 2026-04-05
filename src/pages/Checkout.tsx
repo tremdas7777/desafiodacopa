@@ -12,7 +12,7 @@ import albumImg from '@/assets/album-copa-hero.webp';
 import ingressosVipImg from '@/assets/ingressos-vip-copa.webp';
 import { trackEvent } from '@/lib/funnelTracking';
 import { fireConversionEvent, getPixelConfig } from '@/lib/pixelManager';
-import { fireWebhookEvent } from '@/lib/webhookManager';
+// Webhooks are fired server-side only (edge functions)
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import { supabase } from '@/integrations/supabase/client';
 import PixPopup from '@/components/PixPopup';
