@@ -102,12 +102,24 @@ export default function AdminFinanceiro() {
     const pending = filteredOrders.filter(o => o.status === 'pending' || o.status === 'waiting_payment');
     const cancelled = filteredOrders.filter(o => o.status === 'cancelled' || o.status === 'expired');
 
-    // O cliente paga apenas o frete (produto é "grátis"), então o faturamento real = shipping_cost_cents
-    // amount_cents é o valor do produto (não cobrado), shipping_cost_cents é o que é cobrado no PIX
-    const faturamentoBrutoCents = approved.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
-    const freteTotalCents = faturamentoBrutoCents; // tudo cobrado é frete
-    const faturamentoLiquidoCents = faturamentoBrutoCents; // líquido = bruto (não há taxa descontada)
-    const pendenteCents = pending.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
+    // Pedido principal: produto grátis, cobra só frete (shipping_cost_cents)
+    // Upsell: amount_cents com shipping=0 → cobra amount_cents
+    // Valor cobrado no PIX = se tem frete, é o frete; se não, é o amount_cents (upsell)
+    const getValorCobrado = (o: Order) => {
+      const frete = o.shipping_cost_cents || 0;
+      return frete > 0 ? frete : o.amount_cents;
+    };
+
+    const isUpsell = (o: Order) => (o.shipping_cost_cents || 0) === 0;
+
+    const approvedMain = approved.filter(o => !isUpsell(o));
+    const approvedUpsell = approved.filter(o => isUpsell(o));
+
+    const faturamentoBrutoCents = approved.reduce((sum, o) => sum + getValorCobrado(o), 0);
+    const freteTotalCents = approved.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
+    const upsellTotalCents = approvedUpsell.reduce((sum, o) => sum + o.amount_cents, 0);
+    const faturamentoLiquidoCents = faturamentoBrutoCents; // sem taxas descontadas
+    const pendenteCents = pending.reduce((sum, o) => sum + getValorCobrado(o), 0);
 
     const taxaAprovacao = filteredOrders.length > 0 ? (approved.length / filteredOrders.length) * 100 : 0;
     const taxaCancelamento = filteredOrders.length > 0 ? (cancelled.length / filteredOrders.length) * 100 : 0;
@@ -115,11 +127,14 @@ export default function AdminFinanceiro() {
     return {
       totalOrders: filteredOrders.length,
       approvedCount: approved.length,
+      approvedMainCount: approvedMain.length,
+      approvedUpsellCount: approvedUpsell.length,
       pendingCount: pending.length,
       cancelledCount: cancelled.length,
       faturamentoBruto: faturamentoBrutoCents / 100,
       faturamentoLiquido: faturamentoLiquidoCents / 100,
       freteTotal: freteTotalCents / 100,
+      upsellTotal: upsellTotalCents / 100,
       pendente: pendenteCents / 100,
       ticketMedio: approved.length > 0 ? (faturamentoBrutoCents / approved.length) / 100 : 0,
       taxaAprovacao,
@@ -129,16 +144,24 @@ export default function AdminFinanceiro() {
 
   // Chart: faturamento por dia
   const chartData = useMemo(() => {
-    const dayMap: Record<string, { bruto: number; liquido: number; vendas: number }> = {};
+    const dayMap: Record<string, { frete: number; upsell: number; vendas: number }> = {};
+    const getValorCobrado = (o: Order) => {
+      const frete = o.shipping_cost_cents || 0;
+      return frete > 0 ? frete : o.amount_cents;
+    };
     filteredOrders.filter(o => o.status === 'paid').forEach(order => {
       const day = new Date(order.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-      if (!dayMap[day]) dayMap[day] = { bruto: 0, liquido: 0, vendas: 0 };
-      dayMap[day].bruto += (order.shipping_cost_cents || 0) / 100;
-      dayMap[day].liquido += (order.shipping_cost_cents || 0) / 100;
+      if (!dayMap[day]) dayMap[day] = { frete: 0, upsell: 0, vendas: 0 };
+      const isUpsell = (order.shipping_cost_cents || 0) === 0;
+      if (isUpsell) {
+        dayMap[day].upsell += order.amount_cents / 100;
+      } else {
+        dayMap[day].frete += (order.shipping_cost_cents || 0) / 100;
+      }
       dayMap[day].vendas += 1;
     });
     return Object.entries(dayMap)
-      .map(([dia, v]) => ({ dia, bruto: +v.bruto.toFixed(2), liquido: +v.liquido.toFixed(2), vendas: v.vendas }))
+      .map(([dia, v]) => ({ dia, frete: +v.frete.toFixed(2), upsell: +v.upsell.toFixed(2), vendas: v.vendas }))
       .reverse();
   }, [filteredOrders]);
 
@@ -266,16 +289,23 @@ export default function AdminFinanceiro() {
             <KpiCard
               icon={<DollarSign size={16} className="text-centauro-green" />}
               iconBg="bg-centauro-green/10"
-              label="Faturamento Bruto"
+              label="Faturamento Total"
               value={formatCurrency(stats.faturamentoBruto)}
               sub={`${stats.approvedCount} vendas aprovadas`}
             />
             <KpiCard
               icon={<TrendingUp size={16} className="text-primary" />}
               iconBg="bg-primary/10"
-              label="Faturamento Líquido"
-              value={formatCurrency(stats.faturamentoLiquido)}
-              sub={`Sem frete: ${formatCurrency(stats.freteTotal)}`}
+              label="Fretes Pagos"
+              value={formatCurrency(stats.freteTotal)}
+              sub={`${stats.approvedMainCount} pedidos principais`}
+            />
+            <KpiCard
+              icon={<ArrowUpRight size={16} className="text-centauro-green" />}
+              iconBg="bg-centauro-green/10"
+              label="Receita Upsell"
+              value={formatCurrency(stats.upsellTotal)}
+              sub={`${stats.approvedUpsellCount} upsells pagos`}
             />
             <KpiCard
               icon={<ShoppingCart size={16} className="text-centauro-gold" />}
@@ -285,7 +315,7 @@ export default function AdminFinanceiro() {
               sub={`${stats.approvedCount} aprovados`}
             />
             <KpiCard
-              icon={<ArrowUpRight size={16} className="text-centauro-green" />}
+              icon={<DollarSign size={16} className="text-centauro-green" />}
               iconBg="bg-centauro-green/10"
               label="Ticket Médio"
               value={formatCurrency(stats.ticketMedio)}
@@ -349,12 +379,12 @@ export default function AdminFinanceiro() {
                     <Tooltip
                       formatter={(value: number, name: string) => [
                         `R$ ${value.toFixed(2)}`,
-                        name === 'bruto' ? 'Bruto' : 'Líquido'
+                        name === 'frete' ? 'Fretes' : 'Upsell'
                       ]}
                       contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid hsl(var(--border))' }}
                     />
-                    <Bar dataKey="bruto" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} name="bruto" />
-                    <Bar dataKey="liquido" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="liquido" />
+                    <Bar dataKey="frete" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} name="frete" />
+                    <Bar dataKey="upsell" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="upsell" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -439,10 +469,10 @@ export default function AdminFinanceiro() {
                         </div>
                         <div className="text-right flex-shrink-0 ml-2">
                           <p className="text-sm font-black text-centauro-green">
-                            {formatCurrency((order.shipping_cost_cents || 0) / 100)}
+                            {formatCurrency(((order.shipping_cost_cents || 0) > 0 ? (order.shipping_cost_cents || 0) : order.amount_cents) / 100)}
                           </p>
                           <Badge className="text-[9px] bg-centauro-green/10 text-centauro-green border-centauro-green/30" variant="outline">
-                            Aprovada
+                            {(order.shipping_cost_cents || 0) === 0 ? 'Upsell' : 'Frete'}
                           </Badge>
                         </div>
                       </div>
