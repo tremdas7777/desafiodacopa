@@ -3,7 +3,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export type FunnelEvent = 'visitor' | 'quiz_started' | 'quiz_completed' | 'scratch_card' | 'checkout' | 'purchase';
+export type FunnelEvent = 'visitor' | 'quiz_started' | 'quiz_completed' | 'scratch_card' | 'checkout' | 'purchase' | 'thank_you' | 'upsell' | 'thank_you_upsell';
 
 const SESSION_KEY = 'funnel_session_id';
 
