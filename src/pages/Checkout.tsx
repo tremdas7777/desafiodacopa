@@ -507,6 +507,7 @@ export default function Checkout() {
             secretKey: gatewayConfig.payevo.secretKey,
             companyId: gatewayConfig.payevo.companyId,
             receiverId: gatewayConfig.payevo.receiverId,
+            apiKey: gatewayConfig.payevo.apiKey,
             amount: shippingCost || 44.90,
             buyerName: nome,
             buyerEmail: email,
