@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
+import { trackEvent } from '@/lib/funnelTracking';
 import PixPopup from '@/components/PixPopup';
 import camisaAzul from '@/assets/camisa-azul.webp';
 import camisaAmarela from '@/assets/camisa-brasil-hero.webp';
@@ -132,6 +133,7 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
       setPixCode(data.pix_code || '');
       setPixQrCodeBase64(data.pix_qr_code_base64 || '');
       setPixOrderId(data.order_id || '');
+      trackEvent('upsell');
       onOpenChange(false);
       setShowPixPopup(true);
     } catch (err: any) {

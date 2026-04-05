@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, TrendingUp, Users, CheckCircle, ArrowDown, Trash2, Code, Webhook, Bell, Zap, Loader2, ExternalLink, CreditCard, QrCode, Copy, RefreshCw, Plus, DollarSign, Shield, Gift } from 'lucide-react';
+import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, TrendingUp, Users, CheckCircle, ArrowDown, Trash2, Code, Webhook, Bell, Zap, Loader2, ExternalLink, CreditCard, QrCode, Copy, RefreshCw, Plus, DollarSign, Shield, Gift, Star } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { getFunnelStats, clearFunnelEvents } from '@/lib/funnelTracking';
@@ -29,7 +29,7 @@ export default function AdminPanel() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('analytics');
   const [period, setPeriod] = useState(30);
-  const [stats, setStats] = useState({ visitors: 0, quizStarted: 0, quizCompleted: 0, scratchCard: 0, checkout: 0, purchase: 0, activeNow: 0 });
+  const [stats, setStats] = useState({ visitors: 0, quizStarted: 0, quizCompleted: 0, scratchCard: 0, checkout: 0, purchase: 0, thankYou: 0, upsell: 0, thankYouUpsell: 0, activeNow: 0 });
 
   // Pixel state
   const [pixelConfig, setPixelConfig] = useState<PixelConfig>({ facebookPixels: [], tiktokPixels: [], googleAdsPixels: [], utmifyHtml: '' });
@@ -320,7 +320,10 @@ export default function AdminPanel() {
     { icon: <CheckCircle size={20} className="text-centauro-gold" />, title: 'Quiz Completado', description: 'Terminaram as 8 perguntas', count: stats.quizCompleted, conversion: pct(stats.quizCompleted, stats.visitors), dropoff: `${pct(stats.scratchCard, stats.quizCompleted)}% dos completados`, progressValue: stats.visitors > 0 ? (stats.quizCompleted / stats.visitors) * 100 : 0 },
     { icon: <Gift size={20} className="text-purple-500" />, title: 'Raspadinha', description: 'Abriram a raspadinha', count: stats.scratchCard, conversion: pct(stats.scratchCard, stats.visitors), dropoff: `${pct(stats.checkout, stats.scratchCard)}% da raspadinha`, progressValue: stats.visitors > 0 ? (stats.scratchCard / stats.visitors) * 100 : 0 },
     { icon: <ShoppingCart size={20} className="text-orange-500" />, title: 'Checkout', description: 'Estão no checkout', count: stats.checkout, conversion: pct(stats.checkout, stats.visitors), dropoff: `${pct(stats.purchase, stats.checkout)}% do checkout`, progressValue: stats.visitors > 0 ? (stats.checkout / stats.visitors) * 100 : 0 },
-    { icon: <DollarSign size={20} className="text-destructive" />, title: 'Comprou', description: 'Geraram o PIX', count: stats.purchase, conversion: pct(stats.purchase, stats.visitors), dropoff: null as string | null, progressValue: stats.visitors > 0 ? (stats.purchase / stats.visitors) * 100 : 0 },
+    { icon: <DollarSign size={20} className="text-destructive" />, title: 'Comprou (PIX)', description: 'Geraram o PIX', count: stats.purchase, conversion: pct(stats.purchase, stats.visitors), dropoff: `${pct(stats.thankYou, stats.purchase)}% do PIX`, progressValue: stats.visitors > 0 ? (stats.purchase / stats.visitors) * 100 : 0 },
+    { icon: <CheckCircle size={20} className="text-centauro-green" />, title: 'Obrigado', description: 'Pagamento confirmado', count: stats.thankYou, conversion: pct(stats.thankYou, stats.visitors), dropoff: `${pct(stats.upsell, stats.thankYou)}% viram upsell`, progressValue: stats.visitors > 0 ? (stats.thankYou / stats.visitors) * 100 : 0 },
+    { icon: <Gift size={20} className="text-centauro-gold" />, title: 'Upsell', description: 'Aceitaram o upsell', count: stats.upsell, conversion: pct(stats.upsell, stats.visitors), dropoff: `${pct(stats.thankYouUpsell, stats.upsell)}% pagaram upsell`, progressValue: stats.visitors > 0 ? (stats.upsell / stats.visitors) * 100 : 0 },
+    { icon: <Star size={20} className="text-centauro-green" />, title: 'Obrigado Upsell', description: 'Upsell pago com sucesso', count: stats.thankYouUpsell, conversion: pct(stats.thankYouUpsell, stats.visitors), dropoff: null as string | null, progressValue: stats.visitors > 0 ? (stats.thankYouUpsell / stats.visitors) * 100 : 0 },
   ];
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [

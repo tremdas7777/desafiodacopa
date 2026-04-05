@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { trackEvent } from '@/lib/funnelTracking';
 import { CheckCircle, Package, Truck, Gift, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import centauroLogo from '@/assets/centauro-logo.webp';
@@ -12,8 +13,10 @@ export default function ThankYou() {
   const upsellColor = originalColor === 'azul' ? 'amarela' : 'azul';
   const [showConfetti, setShowConfetti] = useState(true);
   const [showUpsell, setShowUpsell] = useState(false);
+  const hasTracked = useRef(false);
 
   useEffect(() => {
+    if (!hasTracked.current) { trackEvent('thank_you'); hasTracked.current = true; }
     window.scrollTo(0, 0);
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#212121');
     document.documentElement.style.backgroundColor = '#212121';
