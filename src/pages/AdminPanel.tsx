@@ -85,12 +85,12 @@ export default function AdminPanel() {
       const { data, error } = await supabase.functions.invoke(fnMap[gatewayName], {
         body: {
           ...bodyMap[gatewayName],
-          amount: 1.00,
+          amount: 44.90,
           buyerName: 'Teste Admin',
           buyerEmail: 'teste-admin@teste.com',
           buyerDocument: '00000000000',
           buyerPhone: '11999999999',
-          metadata: { address: 'Rua Teste', addressNumber: '1', neighborhood: 'Centro', city: 'São Paulo', state: 'SP', cep: '01001000', shippingMethod: 'sedex', shippingCostCents: 100, itemsDescription: 'Teste Admin' },
+          metadata: { address: 'Rua Teste', addressNumber: '1', neighborhood: 'Centro', city: 'São Paulo', state: 'SP', cep: '01001000', shippingMethod: 'sedex', shippingCostCents: 4490, itemsDescription: 'Teste Admin' },
         },
       });
       if (error) throw error;
