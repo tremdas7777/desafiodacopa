@@ -289,9 +289,16 @@ export default function AdminFinanceiro() {
             <KpiCard
               icon={<DollarSign size={16} className="text-centauro-green" />}
               iconBg="bg-centauro-green/10"
-              label="Faturamento Total"
+              label="Faturamento Aprovado"
               value={formatCurrency(stats.faturamentoBruto)}
               sub={`${stats.approvedCount} vendas aprovadas`}
+            />
+            <KpiCard
+              icon={<TrendingUp size={16} className="text-primary" />}
+              iconBg="bg-primary/10"
+              label="Faturamento Líquido"
+              value={formatCurrency(stats.faturamentoLiquido)}
+              sub={`Todos os ${stats.totalOrders} pedidos do período`}
             />
             <KpiCard
               icon={<TrendingUp size={16} className="text-primary" />}
