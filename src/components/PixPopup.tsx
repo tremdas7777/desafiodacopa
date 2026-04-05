@@ -6,7 +6,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { fireConversionEvent, getPixelConfig } from '@/lib/pixelManager';
+import { fireConversionEvent } from '@/lib/pixelManager';
 
 interface PixPopupProps {
   open: boolean;
