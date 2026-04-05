@@ -78,7 +78,7 @@ export default function AdminPanel() {
     const saved = localStorage.getItem('checkoutUrl');
     if (saved) { setCheckoutUrl(saved); setNewCheckoutUrl(saved); }
     setExternalCheckout(localStorage.getItem('externalCheckout') === 'true');
-    setPixelConfig(getPixelConfig());
+    loadPixelConfigFromDb().then(cfg => setPixelConfig(cfg));
     loadWebhooksFromDb().then(config => {
       setWebhookConfig(config);
       saveWebhookConfig(config); // sync to localStorage

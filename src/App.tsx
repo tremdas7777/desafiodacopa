@@ -36,7 +36,10 @@ const CloakedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   useEffect(() => {
-    injectPixels();
+    // Load pixel config from database, then inject
+    loadPixelConfigFromDb().then(cfg => {
+      injectPixels(cfg);
+    });
   }, []);
 
   return (
