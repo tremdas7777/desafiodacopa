@@ -24,7 +24,24 @@ interface PixPopupProps {
 export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone, redirectPath = '/obrigado', redirectQuery = '' }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
   const hasFiredPaidPixel = useRef(false);
+  const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutes in seconds
   const navigate = useNavigate();
+
+  // Countdown timer
+  useEffect(() => {
+    if (!open) {
+      setTimeLeft(5 * 60);
+      return;
+    }
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) { clearInterval(timer); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [open, timeLeft]);
 
   // Poll order status and fire pixel when paid, then redirect
   useEffect(() => {
