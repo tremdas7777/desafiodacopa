@@ -7,6 +7,7 @@ import cbfLogo from '@/assets/cbf-logo.webp';
 
 export default function ThankYouUpsell() {
   const [showConfetti, setShowConfetti] = useState(true);
+  const hasTracked = useRef(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
