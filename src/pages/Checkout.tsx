@@ -453,6 +453,7 @@ export default function Checkout() {
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
+        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
