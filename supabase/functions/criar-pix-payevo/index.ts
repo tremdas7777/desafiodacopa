@@ -98,12 +98,17 @@ serve(async (req) => {
 
     console.log('PayEvo request body:', JSON.stringify(body));
 
+    const headers: Record<string, string> = {
+      'Authorization': authHeader,
+      'Content-Type': 'application/json',
+    };
+    if (apiKey) {
+      headers['apikey'] = apiKey;
+    }
+
     const response = await fetch('https://apiv2.payevo.com.br/functions/v1/transactions', {
       method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     });
 
