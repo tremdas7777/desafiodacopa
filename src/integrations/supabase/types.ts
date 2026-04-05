@@ -182,6 +182,24 @@ export type Database = {
         }
         Relationships: []
       }
+      pixel_config: {
+        Row: {
+          config: Json
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       webhook_endpoints: {
         Row: {
           active: boolean
