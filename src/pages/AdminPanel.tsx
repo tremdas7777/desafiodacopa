@@ -1051,6 +1051,9 @@ export default function AdminPanel() {
                 >
                   <Save size={14} className="mr-1.5" /> Salvar Vennox
                 </Button>
+                <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('Vennox')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
+                  <Zap size={14} className="mr-1.5" /> Testar Vennox (R$ 1,00)
+                </Button>
               </div>
             </Card>
 
