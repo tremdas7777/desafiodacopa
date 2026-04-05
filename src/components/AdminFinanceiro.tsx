@@ -291,7 +291,7 @@ export default function AdminFinanceiro() {
               iconBg="bg-centauro-green/10"
               label="Faturamento Aprovado"
               value={formatCurrency(stats.faturamentoBruto)}
-              sub={`${stats.approvedCount} vendas aprovadas`}
+              sub={`${stats.approvedMainCount} fretes + ${stats.approvedUpsellCount} upsells`}
             />
             <KpiCard
               icon={<TrendingUp size={16} className="text-primary" />}
