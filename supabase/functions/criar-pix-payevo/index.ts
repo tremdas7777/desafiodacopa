@@ -41,7 +41,7 @@ serve(async (req) => {
   }
 
   try {
-    const { secretKey, companyId, receiverId, amount, buyerName, buyerEmail, buyerDocument, buyerPhone, metadata } = await req.json();
+    const { secretKey, companyId, receiverId, apiKey, amount, buyerName, buyerEmail, buyerDocument, buyerPhone, metadata } = await req.json();
 
     if (!secretKey || !amount) {
       return new Response(JSON.stringify({ error: 'secretKey e amount são obrigatórios' }), {
@@ -98,12 +98,17 @@ serve(async (req) => {
 
     console.log('PayEvo request body:', JSON.stringify(body));
 
+    const headers: Record<string, string> = {
+      'Authorization': authHeader,
+      'Content-Type': 'application/json',
+    };
+    if (apiKey) {
+      headers['apikey'] = apiKey;
+    }
+
     const response = await fetch('https://apiv2.payevo.com.br/functions/v1/transactions', {
       method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     });
 
