@@ -119,7 +119,7 @@ serve(async (req) => {
 
     // Extract PIX code and QR code from response
     const pixCode = data.pix?.qrcode || data.pix?.qr_code || data.pix?.emv || data.pix_qr_code || data.qr_code || '';
-    const pixQrCodeBase64 = data.pix?.qrcodeBase64 || data.pix?.qr_code_base64 || data.pix_qr_code_url || data.qr_code_url || '';
+    const pixQrCodeBase64 = data.pix?.qrcodeBase64 || data.pix?.qr_code_base64 || data.pix_qr_code_base64 || data.pix_qr_code_url || data.qr_code_url || '';
 
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       external_id: data.id?.toString() || data.tid || null,
