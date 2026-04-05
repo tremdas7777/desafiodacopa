@@ -55,17 +55,18 @@ function normalizeStatus(raw: any): string {
 
 // Extract external ID from various gateway payload formats
 function extractExternalId(body: any): string | null {
-  // Try common field names
-  return String(
-    body.id ||
+  // Prioritize nested data.id (CenturionPay sends UUID there, body.id is a short hash)
+  const id = String(
+    body.data?.id ||
+    body.data?.transaction_id ||
     body.transaction_id ||
     body.transaction_hash ||
     body.tid ||
-    body.data?.id ||
-    body.data?.transaction_id ||
     body.object?.id ||
+    body.id ||
     ''
-  ) || null;
+  );
+  return id || null;
 }
 
 // Extract status from various gateway payload formats
