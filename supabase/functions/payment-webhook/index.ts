@@ -23,7 +23,7 @@ async function fireServerWebhooks(
       w.url?.trim() && w.events?.includes(eventType)
     );
 
-    const promises = targets.map(async (webhook: any) => {
+    await Promise.allSettled(targets.map(async (webhook: any) => {
       try {
         await fetch(webhook.url, {
           method: 'POST',
@@ -38,12 +38,47 @@ async function fireServerWebhooks(
       } catch (err) {
         console.error(`Webhook error (${webhook.url}):`, err);
       }
-    });
-
-    await Promise.allSettled(promises);
+    }));
   } catch (err) {
     console.error('Error firing server webhooks:', err);
   }
+}
+
+// Normalize status from various gateway formats
+function normalizeStatus(raw: any): string {
+  const s = String(raw || '').toLowerCase();
+  if (['paid', 'approved', 'completed', 'confirmed', 'captured'].includes(s)) return 'paid';
+  if (['refunded', 'chargedback', 'chargeback'].includes(s)) return 'refunded';
+  if (['expired', 'cancelled', 'canceled'].includes(s)) return 'expired';
+  return s || 'pending';
+}
+
+// Extract external ID from various gateway payload formats
+function extractExternalId(body: any): string | null {
+  // Try common field names
+  return String(
+    body.id ||
+    body.transaction_id ||
+    body.transaction_hash ||
+    body.tid ||
+    body.data?.id ||
+    body.data?.transaction_id ||
+    body.object?.id ||
+    ''
+  ) || null;
+}
+
+// Extract status from various gateway payload formats
+function extractStatus(body: any): string {
+  return normalizeStatus(
+    body.status ||
+    body.current_status ||
+    body.transaction_status ||
+    body.data?.status ||
+    body.object?.status ||
+    body.event?.replace('transaction_', '') ||
+    ''
+  );
 }
 
 serve(async (req) => {
@@ -57,53 +92,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const body = await req.json();
-
-    // Handle postback from payment gateway (Pagou.ai, Vennox, CenturionPay)
-    if (body.id && body.status) {
-      const externalId = body.id.toString();
-      const newStatus = body.status === 'paid' || body.status === 'approved' ? 'paid' : body.status;
-
-      // Get order data before update
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('external_id', externalId)
-        .single();
-
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('external_id', externalId);
-
-      if (error) {
-        console.error('Update error:', error);
-      }
-
-      console.log(`Order ${externalId} updated to ${newStatus}`);
-
-      // Fire webhook on approval
-      if (newStatus === 'paid' && orderData) {
-        await fireServerWebhooks(supabase, 'venda_aprovada', {
-          source: 'gateway-postback',
-          orderId: orderData.id,
-          externalId,
-          buyerName: orderData.buyer_name,
-          buyerEmail: orderData.buyer_email,
-          buyerPhone: orderData.buyer_phone,
-          amount: orderData.amount_cents / 100,
-          gateway: orderData.gateway,
-        });
-      }
-
-      return new Response(JSON.stringify({ received: true }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    console.log('[payment-webhook] Received:', JSON.stringify(body).substring(0, 2000));
 
     // Handle manual status update from admin
     if (body.orderId && body.action === 'approve') {
-      // Get order data before update
       const { data: orderData } = await supabase
         .from('orders')
         .select('*')
@@ -123,7 +115,6 @@ serve(async (req) => {
         });
       }
 
-      // Fire webhook on manual approval
       if (orderData) {
         await fireServerWebhooks(supabase, 'venda_aprovada', {
           source: 'admin-manual',
@@ -142,12 +133,77 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Invalid request' }), {
-      status: 400,
+    // Handle postback from payment gateways
+    const externalId = extractExternalId(body);
+    const newStatus = extractStatus(body);
+
+    if (!externalId) {
+      console.warn('[payment-webhook] No external ID found in payload');
+      return new Response(JSON.stringify({ error: 'No transaction ID found' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[payment-webhook] Processing: externalId=${externalId}, status=${newStatus}`);
+
+    // Find the order by external_id
+    const { data: orderData } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('external_id', externalId)
+      .single();
+
+    if (!orderData) {
+      console.warn(`[payment-webhook] Order not found for external_id: ${externalId}`);
+      // Return 200 to avoid gateway retries for unknown orders
+      return new Response(JSON.stringify({ received: true, warning: 'order_not_found' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Skip if already in same or better status
+    if (orderData.status === 'paid' && newStatus !== 'refunded') {
+      console.log(`[payment-webhook] Order ${externalId} already paid, skipping`);
+      return new Response(JSON.stringify({ received: true, status: 'already_paid' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Update order status
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq('id', orderData.id);
+
+    if (error) {
+      console.error('Update error:', error);
+    }
+
+    console.log(`[payment-webhook] Order ${orderData.id} (ext: ${externalId}) updated to ${newStatus}`);
+
+    // Fire webhook on approval
+    if (newStatus === 'paid') {
+      await fireServerWebhooks(supabase, 'venda_aprovada', {
+        source: 'gateway-postback',
+        orderId: orderData.id,
+        externalId,
+        buyerName: orderData.buyer_name,
+        buyerEmail: orderData.buyer_email,
+        buyerPhone: orderData.buyer_phone,
+        amount: orderData.amount_cents / 100,
+        gateway: orderData.gateway,
+      });
+    }
+
+    return new Response(JSON.stringify({ received: true, status: newStatus }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('[payment-webhook] Error:', error);
     return new Response(JSON.stringify({ error: 'Internal error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
