@@ -126,6 +126,12 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
         functionName = 'criar-pix-simpayout';
         body.clientId = gatewayConfig.simpayout.clientId;
         body.clientSecret = gatewayConfig.simpayout.clientSecret;
+      } else if (activeGateway === 'payevo') {
+        functionName = 'criar-pix-payevo';
+        body.secretKey = gatewayConfig.payevo.secretKey;
+        body.companyId = gatewayConfig.payevo.companyId;
+        body.receiverId = gatewayConfig.payevo.receiverId;
+        body.apiKey = gatewayConfig.payevo.apiKey;
       }
 
       const { data, error: fnError } = await supabase.functions.invoke(functionName, { body });
