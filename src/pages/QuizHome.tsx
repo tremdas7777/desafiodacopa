@@ -262,10 +262,11 @@ export default function QuizHome() {
   const hasTrackedQuizComplete = useRef(false);
   const hasTrackedCheckout = useRef(false);
 
-  // Track visitor on mount
+  // Track visitor + ViewContent on mount
   useEffect(() => {
     if (!hasTrackedVisitor.current) {
       trackEvent('visitor');
+      fireConversionEvent('ViewContent', { content_name: 'Quiz Copa 2026', content_category: 'landing_page', value: 44.90, currency: 'BRL' });
       hasTrackedVisitor.current = true;
     }
   }, []);
