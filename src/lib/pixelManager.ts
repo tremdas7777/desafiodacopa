@@ -279,12 +279,13 @@ async function buildFacebookUserData(userData?: { email?: string; phone?: string
 }
 
 // Fire conversion events for ALL configured pixels
-export function fireConversionEvent(eventName: string, data?: Record<string, unknown>, userData?: { email?: string; phone?: string }) {
+export function fireConversionEvent(eventName: string, data?: Record<string, unknown>, userData?: { email?: string; phone?: string }, eventId?: string) {
   const cfg = getPixelConfig();
+  const dedupEventId = eventId || `${eventName}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-  // Facebook - client pixel (fires for all)
+  // Facebook - client pixel (fires for all) with event_id for dedup
   if (cfg.facebookPixels.some(fb => fb.pixelId) && typeof (window as any).fbq === 'function') {
-    (window as any).fbq('track', eventName, data);
+    (window as any).fbq('track', eventName, data, { eventID: dedupEventId });
   }
 
   // Facebook - Conversions API for each pixel with token (with cookie-based attribution)
@@ -295,6 +296,7 @@ export function fireConversionEvent(eventName: string, data?: Record<string, unk
         data: [{
           event_name: eventName,
           event_time: Math.floor(Date.now() / 1000),
+          event_id: dedupEventId,
           action_source: 'website',
           event_source_url: window.location.href,
           user_data,
@@ -331,6 +333,7 @@ export function fireConversionEvent(eventName: string, data?: Record<string, unk
     const eventData: Record<string, any> = {
       pixel_code: tt.pixelId,
       event: tiktokEventName,
+      event_id: dedupEventId,
       timestamp: new Date().toISOString(),
       context: {
         page: { url: window.location.href },
@@ -355,10 +358,14 @@ export function fireConversionEvent(eventName: string, data?: Record<string, unk
     if (ga.adsLabel) {
       (window as any).gtag('event', 'conversion', {
         send_to: `${ga.adsId}/${ga.adsLabel}`,
+        transaction_id: dedupEventId,
         ...data,
       });
     } else {
-      (window as any).gtag('event', eventName === 'Purchase' ? 'conversion' : eventName, data);
+      (window as any).gtag('event', eventName === 'Purchase' ? 'conversion' : eventName, {
+        transaction_id: dedupEventId,
+        ...data,
+      });
     }
   });
 }

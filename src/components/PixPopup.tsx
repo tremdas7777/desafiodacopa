@@ -6,7 +6,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { fireConversionEvent, getPixelConfig } from '@/lib/pixelManager';
+import { fireConversionEvent } from '@/lib/pixelManager';
 
 interface PixPopupProps {
   open: boolean;
@@ -35,8 +35,9 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
       const { data } = await supabase.from('orders').select('status').eq('id', orderId).single();
       if (data?.status === 'paid' && !hasFiredPaidPixel.current) {
         hasFiredPaidPixel.current = true;
-        const cfg = getPixelConfig();
-        fireConversionEvent('Purchase', { value: amount, currency: 'BRL' }, { email: buyerEmail, phone: buyerPhone });
+        // Fire client-side conversion with event_id matching server-side for Facebook dedup
+        const dedupEventId = `purchase_${orderId}`;
+        fireConversionEvent('Purchase', { value: amount, currency: 'BRL' }, { email: buyerEmail, phone: buyerPhone }, dedupEventId);
         clearInterval(interval);
         // Redirect to thank you page after a short delay
         setTimeout(() => {

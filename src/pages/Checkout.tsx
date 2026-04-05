@@ -11,8 +11,8 @@ import camisaAzulImg from '@/assets/camisa-azul.webp';
 import albumImg from '@/assets/album-copa-hero.webp';
 import ingressosVipImg from '@/assets/ingressos-vip-copa.webp';
 import { trackEvent } from '@/lib/funnelTracking';
-import { fireConversionEvent, getPixelConfig } from '@/lib/pixelManager';
-import { fireWebhookEvent } from '@/lib/webhookManager';
+import { fireConversionEvent } from '@/lib/pixelManager';
+// Webhooks are fired server-side only (edge functions)
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import { supabase } from '@/integrations/supabase/client';
 import PixPopup from '@/components/PixPopup';
@@ -259,10 +259,8 @@ export default function Checkout() {
     }
 
     trackEvent('purchase');
-    const pxCfg = getPixelConfig();
-    if (!pxCfg.onlyPaid) {
-      fireConversionEvent('Purchase', { value: 44.90, currency: 'BRL' }, { email, phone: telefone });
-    }
+    // Purchase conversion is fired ONLY when payment is confirmed (in PixPopup or server-side webhook)
+    // Never fire Purchase here - the user hasn't paid yet
 
     const gatewayConfig = await fetchPaymentGatewayConfig();
     let activeGateway = gatewayConfig.activeGateway;
