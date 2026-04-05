@@ -3,14 +3,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const GATEWAY_URL = 'https://connector-gateway.lovable.dev/twilio';
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  const SMSDEV_API_KEY = Deno.env.get('SMSDEV_API_KEY');
-  if (!SMSDEV_API_KEY) {
-    return new Response(JSON.stringify({ error: 'SMSDEV_API_KEY not configured' }), {
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) {
+    return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const TWILIO_API_KEY = Deno.env.get('TWILIO_API_KEY');
+  if (!TWILIO_API_KEY) {
+    return new Response(JSON.stringify({ error: 'TWILIO_API_KEY not configured' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
@@ -24,36 +33,59 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Format phone: keep only digits, ensure 55 prefix
+    // Format phone to E.164
     let phone = buyerPhone.replace(/\D/g, '');
     if (phone.length === 11 || phone.length === 10) {
       phone = '55' + phone;
+    }
+    if (!phone.startsWith('+')) {
+      phone = '+' + phone;
     }
 
     const firstName = (buyerName || 'Cliente').split(' ')[0];
 
     const message = `Centauro: ${firstName}, seu pedido foi reservado! Valor do frete: R$ 44,90. ATENCAO: o PIX expira em 5 minutos. Copie e cole no app do banco agora: ${pixCode}`;
 
-    // SMS Dev API - send SMS via GET
-    const url = new URL('https://api.smsdev.com.br/v1/send');
-    url.searchParams.set('key', SMSDEV_API_KEY);
-    url.searchParams.set('type', '9');
-    url.searchParams.set('number', phone);
-    url.searchParams.set('msg', message);
-
-    const response = await fetch(url.toString());
-    const data = await response.json();
-
-    console.log('SMS Dev response:', JSON.stringify(data));
-
-    if (data.situacao && data.situacao === 'OK') {
-      return new Response(JSON.stringify({ success: true, id: data.id }), {
-        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // First, get available phone numbers to use as "From"
+    const numbersRes = await fetch(`${GATEWAY_URL}/IncomingPhoneNumbers.json`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'X-Connection-Api-Key': TWILIO_API_KEY,
+      },
+    });
+    const numbersData = await numbersRes.json();
+    
+    let fromNumber = '+15017122661'; // fallback
+    if (numbersData?.incoming_phone_numbers?.length > 0) {
+      fromNumber = numbersData.incoming_phone_numbers[0].phone_number;
     }
 
-    // Even if not "OK", return the response for debugging
-    return new Response(JSON.stringify({ success: true, response: data }), {
+    // Send SMS via Twilio gateway
+    const response = await fetch(`${GATEWAY_URL}/Messages.json`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'X-Connection-Api-Key': TWILIO_API_KEY,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        To: phone,
+        From: fromNumber,
+        Body: message,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Twilio error:', JSON.stringify(data));
+      throw new Error(`Twilio API error [${response.status}]: ${JSON.stringify(data)}`);
+    }
+
+    console.log('SMS sent via Twilio:', data.sid);
+
+    return new Response(JSON.stringify({ success: true, sid: data.sid }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
