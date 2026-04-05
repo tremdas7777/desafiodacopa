@@ -3,6 +3,7 @@
 // Events are queued until pixel scripts are ready, guaranteeing no events are lost
 
 import { supabase } from '@/integrations/supabase/client';
+import { getCampaignParams } from '@/lib/campaignParams';
 
 export interface FacebookPixelEntry {
   id: string;
