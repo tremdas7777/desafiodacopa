@@ -29,13 +29,22 @@ export interface SimPayoutConfig {
   enabled: boolean;
 }
 
+export interface PayEvoConfig {
+  secretKey: string;
+  companyId: string;
+  receiverId: string;
+  apiKey: string;
+  enabled: boolean;
+}
+
 export interface PaymentGatewayConfig {
-  activeGateway: 'pagouai' | 'vennox' | 'centurionpay' | 'ironpay' | 'simpayout';
+  activeGateway: 'pagouai' | 'vennox' | 'centurionpay' | 'ironpay' | 'simpayout' | 'payevo';
   pagouai: PagouAiConfig;
   vennox: VennoxConfig;
   centurionpay: CenturionPayConfig;
   ironpay: IronPayConfig;
   simpayout: SimPayoutConfig;
+  payevo: PayEvoConfig;
 }
 
 const defaultConfig: PaymentGatewayConfig = {
