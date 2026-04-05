@@ -379,12 +379,12 @@ export default function AdminFinanceiro() {
                     <Tooltip
                       formatter={(value: number, name: string) => [
                         `R$ ${value.toFixed(2)}`,
-                        name === 'bruto' ? 'Bruto' : 'Líquido'
+                        name === 'frete' ? 'Fretes' : 'Upsell'
                       ]}
                       contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid hsl(var(--border))' }}
                     />
-                    <Bar dataKey="bruto" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} name="bruto" />
-                    <Bar dataKey="liquido" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="liquido" />
+                    <Bar dataKey="frete" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} name="frete" />
+                    <Bar dataKey="upsell" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="upsell" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
