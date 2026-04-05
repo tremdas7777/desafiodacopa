@@ -469,10 +469,10 @@ export default function AdminFinanceiro() {
                         </div>
                         <div className="text-right flex-shrink-0 ml-2">
                           <p className="text-sm font-black text-centauro-green">
-                            {formatCurrency((order.shipping_cost_cents || 0) / 100)}
+                            {formatCurrency(((order.shipping_cost_cents || 0) > 0 ? (order.shipping_cost_cents || 0) : order.amount_cents) / 100)}
                           </p>
                           <Badge className="text-[9px] bg-centauro-green/10 text-centauro-green border-centauro-green/30" variant="outline">
-                            Aprovada
+                            {(order.shipping_cost_cents || 0) === 0 ? 'Upsell' : 'Frete'}
                           </Badge>
                         </div>
                       </div>
