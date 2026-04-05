@@ -481,6 +481,7 @@ export default function Checkout() {
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
         sendSmsPix(data.pix_code || '', shippingCost || 44.90);
+        sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
