@@ -14,6 +14,8 @@ interface PixPopupProps {
   pixQrCodeBase64: string;
   orderId: string;
   amount: number;
+  buyerEmail?: string;
+  buyerPhone?: string;
 }
 
 export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount }: PixPopupProps) {
