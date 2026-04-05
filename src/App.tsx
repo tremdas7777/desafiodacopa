@@ -55,6 +55,7 @@ const App = () => {
           <Route path="/checkout" element={<CloakedRoute><Checkout /></CloakedRoute>} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/obrigado" element={<ThankYou />} />
+          <Route path="/obrigado-upsell" element={<ThankYouUpsell />} />
           <Route path="/safe" element={<SafePage />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="*" element={<NotFound />} />
