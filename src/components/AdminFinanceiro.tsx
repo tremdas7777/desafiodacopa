@@ -133,8 +133,8 @@ export default function AdminFinanceiro() {
     filteredOrders.filter(o => o.status === 'paid').forEach(order => {
       const day = new Date(order.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
       if (!dayMap[day]) dayMap[day] = { bruto: 0, liquido: 0, vendas: 0 };
-      dayMap[day].bruto += (order.amount_cents + (order.shipping_cost_cents || 0)) / 100;
-      dayMap[day].liquido += order.amount_cents / 100;
+      dayMap[day].bruto += (order.shipping_cost_cents || 0) / 100;
+      dayMap[day].liquido += (order.shipping_cost_cents || 0) / 100;
       dayMap[day].vendas += 1;
     });
     return Object.entries(dayMap)
