@@ -929,11 +929,11 @@ export default function Checkout() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-bold text-foreground line-through">
-                            Retirada na Loja — {nearestStore ? nearestStore.name : 'Centauro mais próxima'}
+                            Retirada na Loja — {selectedGoogleStore ? selectedGoogleStore.name : nearestStore ? nearestStore.name : 'Centauro mais próxima'}
                           </p>
                         </div>
                         <p className="text-[10px] text-muted-foreground">
-                          {nearestStore ? `${nearestStore.address} — ${nearestStore.city}/${nearestStore.uf}` : 'Busca automática pelo CEP'}
+                          {storesLoading ? 'Buscando loja mais próxima...' : selectedGoogleStore ? selectedGoogleStore.address : nearestStore ? `${nearestStore.address} — ${nearestStore.city}/${nearestStore.uf}` : 'Busca automática pelo CEP'}
                         </p>
                         <span className="text-[9px] font-black text-destructive bg-destructive/10 px-1.5 py-0.5 rounded inline-block mt-1">INDISPONÍVEL NO MOMENTO</span>
                       </div>
