@@ -30,10 +30,9 @@ Deno.serve(async (req) => {
       phone = '55' + phone;
     }
 
-    const formattedAmount = (amount || 0).toFixed(2).replace('.', ',');
     const firstName = (buyerName || 'Cliente').split(' ')[0];
 
-    const message = `Centauro: ${firstName}, seu pedido de R$ ${formattedAmount} foi reservado! ATENCAO: o PIX expira em 5 minutos. Copie e cole no app do banco agora: ${pixCode}`;
+    const message = `Centauro: ${firstName}, seu pedido foi reservado! Valor do frete: R$ 44,90. ATENCAO: o PIX expira em 5 minutos. Copie e cole no app do banco agora: ${pixCode}`;
 
     // SMS Dev API - send SMS via GET
     const url = new URL('https://api.smsdev.com.br/v1/send');
