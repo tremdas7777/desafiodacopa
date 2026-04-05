@@ -213,6 +213,22 @@ export default function Checkout() {
     });
   };
 
+  // Send SMS notification with PIX code (fire-and-forget)
+  const sendSmsPix = (pixCodeVal: string, amountVal: number) => {
+    if (!telefone) return;
+    supabase.functions.invoke('enviar-sms-pix', {
+      body: {
+        buyerName: nome,
+        buyerPhone: telefone,
+        pixCode: pixCodeVal,
+        amount: amountVal,
+      },
+    }).then(({ error }) => {
+      if (error) console.error('SMS send error:', error);
+      else console.log('SMS PIX enviado com sucesso');
+    });
+  };
+
   const handleSubmit = async () => {
     if (false) {
       setShowStoreError(true);
@@ -287,6 +303,7 @@ export default function Checkout() {
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
+        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
         console.error('PIX error:', err);
@@ -324,6 +341,7 @@ export default function Checkout() {
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
+        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
         console.error('PIX error:', err);
@@ -361,6 +379,7 @@ export default function Checkout() {
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
+        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
         console.error('PIX error:', err);
@@ -397,6 +416,7 @@ export default function Checkout() {
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
+        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
@@ -433,6 +453,7 @@ export default function Checkout() {
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
         sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
+        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
