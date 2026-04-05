@@ -18,7 +18,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-type FilterPeriod = 'hoje' | '3dias' | '7dias' | '15dias' | '30dias' | 'custom';
+type FilterPeriod = 'hoje' | 'ontem' | '3dias' | '7dias' | '15dias' | '30dias' | 'custom';
 
 interface Order {
   id: string;
