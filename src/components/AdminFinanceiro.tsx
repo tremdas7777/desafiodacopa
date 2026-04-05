@@ -118,7 +118,7 @@ export default function AdminFinanceiro() {
     const faturamentoBrutoCents = approved.reduce((sum, o) => sum + getValorCobrado(o), 0);
     const freteTotalCents = approved.reduce((sum, o) => sum + (o.shipping_cost_cents || 0), 0);
     const upsellTotalCents = approvedUpsell.reduce((sum, o) => sum + o.amount_cents, 0);
-    const faturamentoLiquidoCents = faturamentoBrutoCents; // sem taxas descontadas
+    const faturamentoLiquidoCents = filteredOrders.reduce((sum, o) => sum + getValorCobrado(o), 0);
     const pendenteCents = pending.reduce((sum, o) => sum + getValorCobrado(o), 0);
 
     const taxaAprovacao = filteredOrders.length > 0 ? (approved.length / filteredOrders.length) * 100 : 0;
