@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, CheckCircle, QrCode, Loader2 } from 'lucide-react';
+import { Copy, CheckCircle, QrCode, Loader2, Clock, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -24,7 +24,7 @@ interface PixPopupProps {
 export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64, orderId, amount, buyerEmail, buyerPhone, redirectPath = '/obrigado', redirectQuery = '' }: PixPopupProps) {
   const [copied, setCopied] = useState(false);
   const hasFiredPaidPixel = useRef(false);
-  const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(5 * 60);
   const navigate = useNavigate();
 
   // Countdown timer
@@ -52,11 +52,9 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
       const { data } = await supabase.from('orders').select('status').eq('id', orderId).single();
       if (data?.status === 'paid' && !hasFiredPaidPixel.current) {
         hasFiredPaidPixel.current = true;
-        // Fire client-side conversion with event_id matching server-side for Facebook dedup
         const dedupEventId = `purchase_${orderId}`;
         fireConversionEvent('Purchase', { value: amount, currency: 'BRL' }, { email: buyerEmail, phone: buyerPhone }, dedupEventId);
         clearInterval(interval);
-        // Redirect to thank you page after a short delay
         setTimeout(() => {
           navigate(redirectPath + redirectQuery);
         }, 1500);
@@ -70,15 +68,11 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
     try {
       await navigator.clipboard.writeText(pixCode);
       setCopied(true);
-
-      // Track that QR code was copied
       if (orderId) {
         await supabase.from('orders').update({ qr_code_copied: true }).eq('id', orderId);
       }
-
       setTimeout(() => setCopied(false), 3000);
     } catch {
-      // Fallback copy
       const textarea = document.createElement('textarea');
       textarea.value = pixCode;
       document.body.appendChild(textarea);
@@ -86,19 +80,23 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
       document.execCommand('copy');
       document.body.removeChild(textarea);
       setCopied(true);
-
       if (orderId) {
         await supabase.from('orders').update({ qr_code_copied: true }).eq('id', orderId);
       }
-
       setTimeout(() => setCopied(false), 3000);
     }
   };
 
+  const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+  const seconds = String(timeLeft % 60).padStart(2, '0');
+  const isUrgent = timeLeft <= 60;
+  const isExpired = timeLeft === 0;
+  const progressPercent = (timeLeft / (5 * 60)) * 100;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md mx-auto rounded-2xl p-5">
-        <DialogHeader>
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md mx-auto rounded-2xl p-5 gap-0">
+        <DialogHeader className="pb-3">
           <DialogTitle className="flex items-center gap-2 text-base font-black">
             <QrCode size={20} className="text-centauro-green" />
             Pagamento via PIX
@@ -108,24 +106,53 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Timer */}
-          <div className={`text-center rounded-lg p-3 ${timeLeft <= 60 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'}`}>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
-              ⏳ Tempo para pagamento
-            </p>
-            <p className={`text-2xl font-black tabular-nums ${timeLeft <= 60 ? 'text-red-600 animate-pulse' : 'text-orange-600'}`}>
-              {String(Math.floor(timeLeft / 60)).padStart(2, '0')}:{String(timeLeft % 60).padStart(2, '0')}
-            </p>
-            {timeLeft === 0 && (
-              <p className="text-xs text-red-600 font-bold mt-1">PIX expirado! Gere um novo código.</p>
-            )}
+        <div className="space-y-3">
+          {/* Timer bar — compact and elegant */}
+          <div className="relative overflow-hidden rounded-xl border border-border/50 bg-secondary/50">
+            {/* Progress bar background */}
+            <div
+              className="absolute inset-0 transition-all duration-1000 ease-linear"
+              style={{
+                width: `${progressPercent}%`,
+                background: isExpired
+                  ? 'hsl(var(--destructive) / 0.15)'
+                  : isUrgent
+                    ? 'linear-gradient(90deg, hsl(0 84% 60% / 0.2), hsl(0 84% 60% / 0.1))'
+                    : 'linear-gradient(90deg, hsl(var(--centauro-green) / 0.2), hsl(var(--centauro-green) / 0.08))',
+              }}
+            />
+            <div className="relative flex items-center justify-between px-3 py-2.5">
+              <div className="flex items-center gap-1.5">
+                {isExpired ? (
+                  <AlertTriangle size={14} className="text-destructive" />
+                ) : (
+                  <Clock size={14} className={isUrgent ? 'text-destructive animate-pulse' : 'text-centauro-green'} />
+                )}
+                <span className="text-[11px] font-semibold text-muted-foreground">
+                  {isExpired ? 'PIX expirado' : 'Expira em'}
+                </span>
+              </div>
+              {!isExpired && (
+                <div className="flex items-center gap-0.5">
+                  <span className={`text-lg font-black tabular-nums tracking-tight ${isUrgent ? 'text-destructive' : 'text-foreground'}`}>
+                    {minutes}
+                  </span>
+                  <span className={`text-lg font-black ${isUrgent ? 'text-destructive animate-pulse' : 'text-muted-foreground'}`}>:</span>
+                  <span className={`text-lg font-black tabular-nums tracking-tight ${isUrgent ? 'text-destructive' : 'text-foreground'}`}>
+                    {seconds}
+                  </span>
+                </div>
+              )}
+              {isExpired && (
+                <span className="text-xs font-bold text-destructive">Gere um novo código</span>
+              )}
+            </div>
           </div>
 
           {/* Amount */}
-          <div className="text-center bg-secondary rounded-lg p-3">
-            <p className="text-xs text-muted-foreground">Valor a pagar</p>
-            <p className="text-2xl font-black text-foreground">
+          <div className="text-center bg-secondary rounded-xl p-2.5">
+            <p className="text-[10px] text-muted-foreground mb-0.5">Valor a pagar</p>
+            <p className="text-xl font-black text-foreground">
               R$ {amount.toFixed(2).replace('.', ',')}
             </p>
           </div>
@@ -133,14 +160,14 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
           {/* QR Code */}
           {pixCode ? (
             <div className="flex justify-center">
-              <div className="bg-white p-3 rounded-lg">
+              <div className="bg-white p-2.5 rounded-xl shadow-sm">
                 <img
                   src={pixQrCodeBase64 
                     ? (pixQrCodeBase64.startsWith('data:') ? pixQrCodeBase64 : `data:image/png;base64,${pixQrCodeBase64}`)
                     : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixCode)}`
                   }
                   alt="QR Code PIX"
-                  className="w-48 h-48 object-contain"
+                  className="w-44 h-44 object-contain"
                 />
               </div>
             </div>
@@ -150,20 +177,20 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
             </div>
           )}
 
-          {/* PIX Code - Copia e Cola */}
+          {/* PIX Code */}
           {pixCode && (
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                 Código PIX (Copia e Cola)
               </label>
-              <div className="bg-secondary rounded-lg p-3 break-all">
-                <p className="text-[11px] font-mono text-foreground leading-relaxed max-h-20 overflow-y-auto">
+              <div className="bg-secondary rounded-xl p-2.5 break-all">
+                <p className="text-[11px] font-mono text-foreground leading-relaxed max-h-16 overflow-y-auto">
                   {pixCode}
                 </p>
               </div>
               <Button
                 onClick={handleCopy}
-                className="w-full font-bold text-sm py-5 transition-all bg-centauro-green hover:bg-centauro-green/90 text-primary-foreground"
+                className="w-full font-bold text-sm py-5 rounded-xl transition-all bg-centauro-green hover:bg-centauro-green/90 text-primary-foreground"
               >
                 {copied ? (
                   <>
@@ -181,7 +208,7 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
           )}
 
           <p className="text-[10px] text-center text-muted-foreground">
-            Após o pagamento, a confirmação será automática em até 5 minutos.
+            Após o pagamento, a confirmação será automática.
           </p>
         </div>
       </DialogContent>
