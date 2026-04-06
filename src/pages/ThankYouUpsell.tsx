@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { trackEvent } from '@/lib/funnelTracking';
-import { CheckCircle, Package, Truck, Gift, ArrowRight, ShieldCheck, Star } from 'lucide-react';
+import { CheckCircle, Package, Truck, Gift, ArrowRight, ShieldCheck, Star, PartyPopper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import centauroLogo from '@/assets/centauro-logo.webp';
 import cbfLogo from '@/assets/cbf-logo.webp';
@@ -16,7 +17,7 @@ export default function ThankYouUpsell() {
     document.documentElement.style.backgroundColor = '#212121';
     document.body.style.backgroundColor = '#212121';
 
-    const timer = setTimeout(() => setShowConfetti(false), 4000);
+    const timer = setTimeout(() => setShowConfetti(false), 5000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -31,11 +32,12 @@ export default function ThankYouUpsell() {
         </div>
       </div>
 
-      {/* Success Banner */}
+      {/* Success Banner - Extra celebratory */}
       <div className="bg-centauro-green py-3 px-4">
         <div className="max-w-lg mx-auto flex items-center justify-center gap-2 text-primary-foreground">
-          <Star size={20} />
-          <span className="text-sm font-bold tracking-wide uppercase">Upsell Confirmado!</span>
+          <PartyPopper size={20} />
+          <span className="text-sm font-bold tracking-wide uppercase">Pedido Completo! 🎉🎉</span>
+          <PartyPopper size={20} />
         </div>
       </div>
 
@@ -45,29 +47,32 @@ export default function ThankYouUpsell() {
         <div className="flex flex-col items-center mb-8 relative">
           {showConfetti && (
             <div className="absolute -top-4 left-0 right-0 flex justify-center pointer-events-none">
-              {[...Array(12)].map((_, i) => (
+              {[...Array(20)].map((_, i) => (
                 <div
                   key={i}
                   className="w-2 h-2 rounded-full absolute animate-bounce"
                   style={{
-                    backgroundColor: ['#E60000', '#FFD700', '#00A651', '#FFFFFF', '#0066CC'][i % 5],
-                    left: `${15 + (i * 6)}%`,
-                    animationDelay: `${i * 0.15}s`,
-                    animationDuration: `${0.8 + (i * 0.1)}s`,
+                    backgroundColor: ['#E60000', '#FFD700', '#00A651', '#FFFFFF', '#0066CC', '#FF6B00'][i % 6],
+                    left: `${5 + (i * 4.5)}%`,
+                    animationDelay: `${i * 0.1}s`,
+                    animationDuration: `${0.5 + (i * 0.08)}s`,
                   }}
                 />
               ))}
             </div>
           )}
-          <div className="w-20 h-20 rounded-full bg-centauro-green/10 flex items-center justify-center mb-4 ring-4 ring-centauro-green/20">
-            <CheckCircle className="text-centauro-green" size={48} strokeWidth={2.5} />
+          <div className="w-24 h-24 rounded-full bg-centauro-green/10 flex items-center justify-center mb-4 ring-4 ring-centauro-green/20">
+            <Star className="text-centauro-gold" size={52} strokeWidth={2.5} fill="currentColor" />
           </div>
           <h1 className="text-2xl font-black text-foreground text-center uppercase tracking-tight">
-            Pedido Completo!
+            Você garantiu as 2 camisas! 🔥
           </h1>
           <p className="text-muted-foreground text-center mt-2 text-sm leading-relaxed max-w-xs">
-            A camisa azul foi adicionada ao seu pedido com sucesso. Tudo será enviado junto!
+            Ambas as camisas serão enviadas juntas no mesmo pacote. Você fez um ótimo negócio!
           </p>
+          <div className="mt-3 bg-centauro-gold/10 rounded-full px-4 py-1.5">
+            <span className="text-xs font-black text-centauro-gold uppercase">Economia total: R$ 150,00</span>
+          </div>
         </div>
 
         {/* Order Steps */}
@@ -77,8 +82,8 @@ export default function ThankYouUpsell() {
               <CheckCircle className="text-centauro-green" size={22} />
             </div>
             <div>
-              <p className="font-bold text-foreground text-sm">2 pagamentos confirmados</p>
-              <p className="text-muted-foreground text-xs mt-0.5">Pedido original + camisa azul — tudo aprovado.</p>
+              <p className="font-bold text-foreground text-sm">2 pagamentos confirmados ✅</p>
+              <p className="text-muted-foreground text-xs mt-0.5">Camisa original + segunda camisa — tudo aprovado!</p>
             </div>
           </div>
 
@@ -87,7 +92,7 @@ export default function ThankYouUpsell() {
               <Package className="text-primary" size={22} />
             </div>
             <div>
-              <p className="font-bold text-foreground text-sm">Pedidos sendo unificados</p>
+              <p className="font-bold text-foreground text-sm">Pedidos sendo unificados 📦</p>
               <p className="text-muted-foreground text-xs mt-0.5">As duas camisas serão enviadas no mesmo pacote.</p>
             </div>
           </div>
@@ -97,18 +102,18 @@ export default function ThankYouUpsell() {
               <Truck className="text-centauro-gold" size={22} />
             </div>
             <div>
-              <p className="font-bold text-foreground text-sm">Envio via Correios SEDEX</p>
+              <p className="font-bold text-foreground text-sm">Envio via Correios SEDEX 🚀</p>
               <p className="text-muted-foreground text-xs mt-0.5">Sem frete adicional! Código de rastreio por e-mail.</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-4 bg-card rounded-xl p-4 border border-border shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-centauro-green/10 flex items-center justify-center flex-shrink-0">
-              <Gift className="text-centauro-green" size={22} />
+          <div className="flex items-start gap-4 bg-card rounded-xl p-4 border border-centauro-gold/30 shadow-sm bg-centauro-gold/5">
+            <div className="w-10 h-10 rounded-lg bg-centauro-gold/20 flex items-center justify-center flex-shrink-0">
+              <Gift className="text-centauro-gold" size={22} />
             </div>
             <div>
-              <p className="font-bold text-foreground text-sm">2 números no sorteio VIP!</p>
-              <p className="text-muted-foreground text-xs mt-0.5">Suas chances de ganhar ingressos VIP para a Copa 2026 dobraram!</p>
+              <p className="font-bold text-foreground text-sm">2 números no sorteio VIP! 🏆</p>
+              <p className="text-muted-foreground text-xs mt-0.5">Suas chances de ganhar ingressos VIP para a Copa 2026 <strong className="text-foreground">dobraram</strong>!</p>
             </div>
           </div>
         </div>
