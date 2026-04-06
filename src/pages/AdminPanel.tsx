@@ -331,8 +331,6 @@ export default function AdminPanel() {
             <p className="text-muted-foreground text-xs mt-1">Acesso restrito</p>
           </div>
           <div className="mb-4">
-            <label className="block mb-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">E-mail</label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@email.com" className="font-semibold text-sm mb-3" />
             <label className="block mb-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Senha</label>
             <div className="relative">
               <Input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="Digite a senha" className="pr-10 font-semibold text-sm" />
