@@ -232,29 +232,6 @@ export const useCloaker = () => {
         }
 
         setIsBot(geoData?.isBot ?? false);
-            // Send client fingerprint data to server for cross-validation
-            screenWidth: window.screen.width,
-            screenHeight: window.screen.height,
-            colorDepth: window.screen.colorDepth,
-            pixelRatio: window.devicePixelRatio,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            languages: navigator.languages?.slice(0, 3),
-            platform: navigator.platform,
-            hardwareConcurrency: navigator.hardwareConcurrency,
-            hasTouch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-            pluginCount: navigator.plugins?.length ?? 0,
-          },
-        });
-
-        if (error) {
-          console.warn('[Cloaker] Server check failed, showing real page:', error);
-          setIsBot(false);
-        } else {
-          setIsBot(data?.isBot ?? false);
-          if (data?.isBot) {
-            console.log('[Cloaker] Server-side bot detected:', data.reason);
-          }
-        }
       } catch (err) {
         console.warn('[Cloaker] Error, defaulting to real page:', err);
         setIsBot(false);
