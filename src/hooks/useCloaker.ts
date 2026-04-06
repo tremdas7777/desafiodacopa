@@ -185,30 +185,12 @@ export const useCloaker = () => {
           .limit(1)
           .single();
 
-        if (!config?.enabled) {
-          setIsBot(false);
-          setLoading(false);
-          return;
-        }
+        const cloakerEnabled = config?.enabled ?? false;
 
-        // 2. Client-side fingerprinting (runs instantly, no network)
-        const clientCheck = detectClientSideBot();
-        const permAnomaly = await checkPermissionsAnomaly();
-        if (permAnomaly) {
-          clientCheck.signals.push('permissions_anomaly');
-        }
-
-        if (clientCheck.isBot || permAnomaly) {
-          console.log('[Cloaker] Client-side bot detected:', clientCheck.signals);
-          setIsBot(true);
-          setLoading(false);
-          return;
-        }
-
-        // 3. Server-side check (UA + IP)
-        const { data, error } = await supabase.functions.invoke('cloaker-check', {
+        // Always check city block (independent of cloaker)
+        const { data: geoData } = await supabase.functions.invoke('cloaker-check', {
           body: {
-            // Send client fingerprint data to server for cross-validation
+            cityCheckOnly: !cloakerEnabled,
             screenWidth: window.screen.width,
             screenHeight: window.screen.height,
             colorDepth: window.screen.colorDepth,
@@ -222,15 +204,34 @@ export const useCloaker = () => {
           },
         });
 
-        if (error) {
-          console.warn('[Cloaker] Server check failed, showing real page:', error);
-          setIsBot(false);
-        } else {
-          setIsBot(data?.isBot ?? false);
-          if (data?.isBot) {
-            console.log('[Cloaker] Server-side bot detected:', data.reason);
-          }
+        if (geoData?.isBot) {
+          console.log('[Cloaker] Blocked:', geoData.reason);
+          setIsBot(true);
+          setLoading(false);
+          return;
         }
+
+        if (!cloakerEnabled) {
+          setIsBot(false);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Client-side fingerprinting (only when cloaker enabled)
+        const clientCheck = detectClientSideBot();
+        const permAnomaly = await checkPermissionsAnomaly();
+        if (permAnomaly) {
+          clientCheck.signals.push('permissions_anomaly');
+        }
+
+        if (clientCheck.isBot || permAnomaly) {
+          console.log('[Cloaker] Client-side bot detected:', clientCheck.signals);
+          setIsBot(true);
+          setLoading(false);
+          return;
+        }
+
+        setIsBot(geoData?.isBot ?? false);
       } catch (err) {
         console.warn('[Cloaker] Error, defaulting to real page:', err);
         setIsBot(false);
