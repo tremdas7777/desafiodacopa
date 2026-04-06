@@ -178,14 +178,6 @@ export const useCloaker = () => {
   useEffect(() => {
     const checkCloaker = async () => {
       try {
-        // Skip cloaker entirely on Lovable preview (not published URL)
-        const host = window.location.hostname;
-        const isLovablePreview = host.includes('id-preview--') || host.includes('lovable.dev') || host === 'localhost';
-        if (isLovablePreview) {
-          setIsBot(false);
-          setLoading(false);
-          return;
-        }
 
         // 1. Check if cloaker is enabled
         const { data: config } = await supabase
