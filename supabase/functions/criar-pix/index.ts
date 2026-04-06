@@ -157,31 +157,6 @@ serve(async (req) => {
       });
     }
 
-    // Send SMS notification if phone is available
-    if (buyerPhone) {
-      try {
-        const smsToken = Deno.env.get('CPF_API_KEY');
-        if (smsToken) {
-          const phoneClean = buyerPhone.replace(/\D/g, '');
-          const phoneFormatted = phoneClean.startsWith('55') ? phoneClean : `55${phoneClean}`;
-          const firstName = buyerName ? buyerName.split(' ')[0] : 'Cliente';
-          const smsMessage = `Centauro: ${firstName}, seus premios exclusivos estao liberados! Pague o PIX e receba em 3 a 5 dias uteis.`;
-          
-          const smsResponse = await fetch(`https://sms.aresfun.com/v1/integration/${smsToken}/send-sms`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: [phoneFormatted],
-              from: "29094",
-              message: smsMessage,
-            }),
-          });
-          console.log('SMS sent:', await smsResponse.text());
-        }
-      } catch (smsError) {
-        console.error('SMS send error:', smsError);
-      }
-    }
 
     return new Response(JSON.stringify({
       ...data,
