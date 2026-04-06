@@ -235,13 +235,3 @@ Deno.serve(async (req) => {
       }
     );
   }
-});
-    return new Response(
-      JSON.stringify({ isBot: false, reason: 'error', error: String(error) }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
-  }
-});
