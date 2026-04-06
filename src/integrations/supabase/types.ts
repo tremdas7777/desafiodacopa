@@ -360,6 +360,10 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_funnel_stats: {
+        Args: { active_cutoff: string; cutoff_time: string }
+        Returns: Json
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
