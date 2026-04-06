@@ -124,13 +124,26 @@ export default function AdminPanel() {
     setOrdersLoading(false);
   };
 
+  // Check auth state on mount
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+      setAuthLoading(false);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setAuthLoading(false);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
     const saved = localStorage.getItem('checkoutUrl');
     if (saved) { setCheckoutUrl(saved); setNewCheckoutUrl(saved); }
     setExternalCheckout(localStorage.getItem('externalCheckout') === 'true');
     loadPixelConfigFromDb().then(async (cfg) => {
       setPixelConfig(cfg);
-      // Auto-migrate: if DB is empty but localStorage has data, push to DB
       const hasPixels = cfg.facebookPixels.length > 0 || cfg.tiktokPixels.length > 0 || cfg.googleAdsPixels.length > 0;
       if (!hasPixels) {
         try {
@@ -140,7 +153,6 @@ export default function AdminPanel() {
             if (localCfg.facebookPixels?.length || localCfg.tiktokPixels?.length || localCfg.googleAdsPixels?.length) {
               await savePixelConfig(localCfg);
               setPixelConfig(localCfg);
-              console.log('[Pixels] Migrated localStorage config to database');
             }
           }
         } catch { /* ignore */ }
@@ -148,15 +160,14 @@ export default function AdminPanel() {
     });
     loadWebhooksFromDb().then(config => {
       setWebhookConfig(config);
-      saveWebhookConfig(config); // sync to localStorage
+      saveWebhookConfig(config);
     });
     setUtmifyConfig(getUtmifyConfig());
     fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
-    // Load cloaker config
     supabase.from('cloaker_config').select('enabled').limit(1).single().then(({ data }) => {
       if (data) setCloakerEnabled(data.enabled);
     });
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
