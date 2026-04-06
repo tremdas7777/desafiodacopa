@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { runPreciseGeoBlock, type CloakerGeoMetadata } from '@/lib/cloakerGeo';
 
 /**
  * Advanced cloaker with multi-layer detection:
@@ -8,6 +9,14 @@ import { supabase } from '@/integrations/supabase/client';
  * 3. Server-side UA/IP verification
  * 4. Canvas/WebGL fingerprinting anomalies
  */
+
+type CloakerCheckResponse = {
+  isBot?: boolean;
+  reason?: string;
+  confidence?: number;
+  timestamp?: string;
+  geo?: CloakerGeoMetadata | null;
+};
 
 // Client-side bot detection checks
 const detectClientSideBot = (): { isBot: boolean; signals: string[] } => {
@@ -178,6 +187,18 @@ export const useCloaker = () => {
   useEffect(() => {
     const checkCloaker = async () => {
       try {
+        const applyPreciseGeoBlock = async (result?: CloakerCheckResponse | null) => {
+          const preciseGeoCheck = await runPreciseGeoBlock(result?.geo ?? undefined);
+
+          if (preciseGeoCheck.blocked) {
+            console.log('[Cloaker] Precise geo blocked:', preciseGeoCheck.reason, preciseGeoCheck.coordinates);
+            setIsBot(true);
+            setLoading(false);
+            return true;
+          }
+
+          return false;
+        };
 
         // 1. Check if cloaker is enabled
         const { data: config } = await supabase
@@ -216,10 +237,16 @@ export const useCloaker = () => {
             },
           });
 
-          if (data?.isBot) {
-            console.log('[Cloaker] Blocked:', data.reason);
+          const serverResult = data as CloakerCheckResponse | null;
+
+          if (serverResult?.isBot) {
+            console.log('[Cloaker] Blocked:', serverResult.reason);
             setIsBot(true);
             setLoading(false);
+            return;
+          }
+
+          if (await applyPreciseGeoBlock(serverResult)) {
             return;
           }
 
@@ -231,10 +258,16 @@ export const useCloaker = () => {
             body: { cityCheckOnly: true },
           });
 
-          if (data?.isBot) {
-            console.log('[Cloaker] City blocked:', data.reason);
+          const serverResult = data as CloakerCheckResponse | null;
+
+          if (serverResult?.isBot) {
+            console.log('[Cloaker] City blocked:', serverResult.reason);
             setIsBot(true);
             setLoading(false);
+            return;
+          }
+
+          if (await applyPreciseGeoBlock(serverResult)) {
             return;
           }
 
