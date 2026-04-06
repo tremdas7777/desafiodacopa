@@ -83,12 +83,12 @@ export const runPreciseGeoBlock = async (
 
   const permissionState = await getGeolocationPermissionState();
   if (permissionState === 'denied') {
-    return { blocked: false, attempted: true, reason: 'geolocation_denied' };
+    return { blocked: true, attempted: true, reason: 'geolocation_denied_in_bahia' };
   }
 
   const position = await getCurrentPosition();
   if (!position) {
-    return { blocked: false, attempted: true, reason: 'geolocation_unavailable' };
+    return { blocked: true, attempted: true, reason: 'geolocation_unavailable_in_bahia' };
   }
 
   const { latitude, longitude } = position.coords;
