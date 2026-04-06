@@ -392,7 +392,7 @@ export default function AdminPanel() {
             <h1 className="text-primary-foreground font-black text-sm">Painel Admin</h1>
             <p className="text-primary-foreground/60 text-[10px]">Gerenciamento</p>
           </div>
-          <Button onClick={() => { setIsAuthenticated(false); setPassword(''); setMessage(''); }} variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 text-xs font-bold">
+          <Button onClick={async () => { await supabase.auth.signOut(); setPassword(''); setMessage(''); }} variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 text-xs font-bold">
             <LogOut size={14} className="mr-1" /> Sair
           </Button>
         </div>
