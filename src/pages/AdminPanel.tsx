@@ -118,8 +118,15 @@ export default function AdminPanel() {
 
   const fetchOrders = async () => {
     setOrdersLoading(true);
-    const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(50);
-    setOrders(data || []);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('fetchOrders - session exists:', !!sessionData?.session);
+      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(50);
+      console.log('fetchOrders - result:', data?.length, 'error:', error?.message);
+      setOrders(data || []);
+    } catch (e) {
+      console.error('fetchOrders exception:', e);
+    }
     setOrdersLoading(false);
   };
 
