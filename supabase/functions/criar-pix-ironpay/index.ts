@@ -113,6 +113,10 @@ serve(async (req) => {
     const pixQrCodeBase64 = data.pix?.qrcodeBase64 || data.pix?.qr_code_base64 || data.pix_qr_code_url || data.qr_code_url || '';
 
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || req.headers.get('cf-connecting-ip') || null;
+    let ipCity: string | null = null;
+    if (clientIp) {
+      try { const geo = await fetch(`http://ip-api.com/json/${clientIp}?fields=city,regionName,country`).then(r => r.json()); if (geo.city) ipCity = `${geo.city}, ${geo.regionName}`; } catch {}
+    }
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       external_id: data.transaction_hash || data.id?.toString() || data.tid || externalRef || null,
       gateway: 'ironpay',
@@ -123,6 +127,7 @@ serve(async (req) => {
       buyer_document: buyerDocument ? buyerDocument.replace(/\D/g, '') : null,
       buyer_phone: buyerPhone || null,
       buyer_ip: clientIp,
+      buyer_ip_city: ipCity,
       pix_code: pixCode,
       pix_qr_code_base64: pixQrCodeBase64,
       gateway_response: data,
