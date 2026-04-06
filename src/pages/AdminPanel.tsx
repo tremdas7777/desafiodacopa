@@ -312,15 +312,25 @@ export default function AdminPanel() {
 
   const pct = (a: number, b: number) => (b === 0 ? 0 : Math.round((a / b) * 100));
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-8 border border-border shadow-sm">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-black text-foreground">Painel Admin</h1>
-            <p className="text-muted-foreground text-xs mt-1">Gerenciamento</p>
+            <p className="text-muted-foreground text-xs mt-1">Acesso restrito</p>
           </div>
           <div className="mb-4">
+            <label className="block mb-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">E-mail</label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@email.com" className="font-semibold text-sm mb-3" />
             <label className="block mb-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Senha</label>
             <div className="relative">
               <Input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="Digite a senha" className="pr-10 font-semibold text-sm" />
