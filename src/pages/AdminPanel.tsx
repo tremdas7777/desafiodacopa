@@ -1432,6 +1432,7 @@ export default function AdminPanel() {
                         <p className="text-xs font-black text-foreground">{order.buyer_name || 'Sem nome'}</p>
                         <p className="text-[10px] text-muted-foreground">{order.buyer_email || 'Sem email'}</p>
                         {order.buyer_phone && <p className="text-[10px] text-muted-foreground">{order.buyer_phone}</p>}
+                        {order.buyer_ip && <p className="text-[10px] text-muted-foreground/60">IP: {order.buyer_ip}</p>}
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <Badge className={`text-[10px] ${order.status === 'paid' ? 'bg-centauro-green/10 text-centauro-green border-centauro-green/30' : 'bg-centauro-gold/10 text-centauro-gold border-centauro-gold/30'}`}>
