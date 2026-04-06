@@ -17,7 +17,6 @@ import AdminFinanceiro from '@/components/AdminFinanceiro';
 import AdminLeads from '@/components/AdminLeads';
 
 const ADMIN_EMAIL = 'admin@centauro.com';
-const ADMIN_DEFAULT_PASSWORD = 'escalabahia2024!';
 
 type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
