@@ -187,51 +187,58 @@ export const useCloaker = () => {
 
         const cloakerEnabled = config?.enabled ?? false;
 
-        // Always check city block (independent of cloaker)
-        const { data: geoData } = await supabase.functions.invoke('cloaker-check', {
-          body: {
-            cityCheckOnly: !cloakerEnabled,
-            screenWidth: window.screen.width,
-            screenHeight: window.screen.height,
-            colorDepth: window.screen.colorDepth,
-            pixelRatio: window.devicePixelRatio,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            languages: navigator.languages?.slice(0, 3),
-            platform: navigator.platform,
-            hardwareConcurrency: navigator.hardwareConcurrency,
-            hasTouch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-            pluginCount: navigator.plugins?.length ?? 0,
-          },
-        });
+        if (cloakerEnabled) {
+          // Full cloaker mode: client-side + server-side bot detection
+          const clientCheck = detectClientSideBot();
+          const permAnomaly = await checkPermissionsAnomaly();
+          if (permAnomaly) clientCheck.signals.push('permissions_anomaly');
 
-        if (geoData?.isBot) {
-          console.log('[Cloaker] Blocked:', geoData.reason);
-          setIsBot(true);
-          setLoading(false);
-          return;
-        }
+          if (clientCheck.isBot || permAnomaly) {
+            console.log('[Cloaker] Client-side bot detected:', clientCheck.signals);
+            setIsBot(true);
+            setLoading(false);
+            return;
+          }
 
-        if (!cloakerEnabled) {
+          const { data } = await supabase.functions.invoke('cloaker-check', {
+            body: {
+              screenWidth: window.screen.width,
+              screenHeight: window.screen.height,
+              colorDepth: window.screen.colorDepth,
+              pixelRatio: window.devicePixelRatio,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              languages: navigator.languages?.slice(0, 3),
+              platform: navigator.platform,
+              hardwareConcurrency: navigator.hardwareConcurrency,
+              hasTouch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+              pluginCount: navigator.plugins?.length ?? 0,
+            },
+          });
+
+          if (data?.isBot) {
+            console.log('[Cloaker] Blocked:', data.reason);
+            setIsBot(true);
+            setLoading(false);
+            return;
+          }
+
           setIsBot(false);
           setLoading(false);
-          return;
-        }
-
-        // 2. Client-side fingerprinting (only when cloaker enabled)
-        const clientCheck = detectClientSideBot();
-        const permAnomaly = await checkPermissionsAnomaly();
-        if (permAnomaly) {
-          clientCheck.signals.push('permissions_anomaly');
-        }
-
-        if (clientCheck.isBot || permAnomaly) {
-          console.log('[Cloaker] Client-side bot detected:', clientCheck.signals);
-          setIsBot(true);
+        } else {
+          // Cloaker disabled: show page immediately, check city in background
+          setIsBot(false);
           setLoading(false);
-          return;
-        }
 
-        setIsBot(geoData?.isBot ?? false);
+          // Non-blocking city check
+          supabase.functions.invoke('cloaker-check', {
+            body: { cityCheckOnly: true },
+          }).then(({ data }) => {
+            if (data?.isBot) {
+              console.log('[Cloaker] City blocked:', data.reason);
+              setIsBot(true);
+            }
+          }).catch(() => { /* ignore */ });
+        }
       } catch (err) {
         console.warn('[Cloaker] Error, defaulting to real page:', err);
         setIsBot(false);
