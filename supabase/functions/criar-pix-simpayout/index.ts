@@ -133,6 +133,7 @@ Deno.serve(async (req) => {
     const externalId = String(txData.id || externalRef || '');
 
     // Save order
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || req.headers.get('cf-connecting-ip') || null;
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       external_id: String(externalId),
       gateway: 'simpayout',
@@ -142,6 +143,7 @@ Deno.serve(async (req) => {
       buyer_email: buyerEmail || null,
       buyer_document: cleanDoc || null,
       buyer_phone: buyerPhone || null,
+      buyer_ip: clientIp,
       pix_code: pixCode,
       pix_qr_code_base64: pixQrCodeBase64,
       gateway_response: txData,

@@ -112,6 +112,7 @@ serve(async (req) => {
     const pixCode = data.pix?.qrcode || data.pix?.qr_code || data.pix_qr_code || data.qr_code || data.pix?.emv || '';
     const pixQrCodeBase64 = data.pix?.qrcodeBase64 || data.pix?.qr_code_base64 || data.pix_qr_code_url || data.qr_code_url || '';
 
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || req.headers.get('cf-connecting-ip') || null;
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       external_id: data.transaction_hash || data.id?.toString() || data.tid || externalRef || null,
       gateway: 'ironpay',
@@ -121,6 +122,7 @@ serve(async (req) => {
       buyer_email: buyerEmail || null,
       buyer_document: buyerDocument ? buyerDocument.replace(/\D/g, '') : null,
       buyer_phone: buyerPhone || null,
+      buyer_ip: clientIp,
       pix_code: pixCode,
       pix_qr_code_base64: pixQrCodeBase64,
       gateway_response: data,
