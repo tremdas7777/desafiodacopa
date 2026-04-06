@@ -51,6 +51,137 @@ const BLOCKED_CITIES = [
   'vitória da conquista',
 ];
 
+type GeoLookupResult = {
+  city: string;
+  region: string;
+  country: string;
+  provider: string;
+}
+
+const normalizeText = (value = '') =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+const isBlockedCity = (city = '') => {
+  const normalizedCity = normalizeText(city);
+  return BLOCKED_CITIES.some((blockedCity) => {
+    const normalizedBlockedCity = normalizeText(blockedCity);
+    return normalizedCity === normalizedBlockedCity || normalizedCity.includes(normalizedBlockedCity);
+  });
+};
+
+const GEO_LOOKUP_PROVIDERS = [
+  {
+    name: 'ip-api',
+    buildUrl: (clientIp: string) => `http://ip-api.com/json/${clientIp}?fields=status,message,city,regionName,country`,
+    parse: (payload: any): GeoLookupResult | null => {
+      if (payload?.status !== 'success') return null;
+      return {
+        city: payload.city || '',
+        region: payload.regionName || '',
+        country: payload.country || '',
+        provider: 'ip-api',
+      };
+    },
+  },
+  {
+    name: 'ipwho.is',
+    buildUrl: (clientIp: string) => `https://ipwho.is/${clientIp}`,
+    parse: (payload: any): GeoLookupResult | null => {
+      if (payload?.success === false) return null;
+      return {
+        city: payload.city || '',
+        region: payload.region || '',
+        country: payload.country || '',
+        provider: 'ipwho.is',
+      };
+    },
+  },
+  {
+    name: 'ipapi.co',
+    buildUrl: (clientIp: string) => `https://ipapi.co/${clientIp}/json/`,
+    parse: (payload: any): GeoLookupResult | null => {
+      if (payload?.error) return null;
+      return {
+        city: payload.city || '',
+        region: payload.region || '',
+        country: payload.country_name || '',
+        provider: 'ipapi.co',
+      };
+    },
+  },
+];
+
+const fetchGeoLookup = async (clientIp: string): Promise<GeoLookupResult | null> => {
+  let firstSuccessfulLookup: GeoLookupResult | null = null;
+
+  for (const provider of GEO_LOOKUP_PROVIDERS) {
+    try {
+      const response = await fetch(provider.buildUrl(clientIp), {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(2500),
+      });
+
+      if (!response.ok) {
+        console.log(`[GeoCheck] ${provider.name} failed with status ${response.status} for IP ${clientIp}`);
+        continue;
+      }
+
+      const payload = await response.json();
+      const geo = provider.parse(payload);
+
+      if (!geo) {
+        console.log(`[GeoCheck] ${provider.name} returned no usable data for IP ${clientIp}`);
+        continue;
+      }
+
+      console.log(`[GeoCheck] ${provider.name} -> IP: ${clientIp} | City: ${geo.city} | Region: ${geo.region}`);
+
+      if (isBlockedCity(geo.city)) {
+        return geo;
+      }
+
+      if (!firstSuccessfulLookup) {
+        firstSuccessfulLookup = geo;
+      }
+    } catch (error) {
+      console.log(`[GeoCheck] ${provider.name} lookup failed for IP ${clientIp}: ${error}`);
+    }
+  }
+
+  return firstSuccessfulLookup;
+};
+
+const buildResponsePayload = ({
+  isBot,
+  reason,
+  confidence,
+  detectedCity,
+  detectedRegion,
+  detectedCountry,
+  detectedGeoProvider,
+}: {
+  isBot: boolean;
+  reason: string;
+  confidence: number;
+  detectedCity: string;
+  detectedRegion: string;
+  detectedCountry: string;
+  detectedGeoProvider: string;
+}) => ({
+  isBot,
+  reason: isBot ? reason : 'real_user',
+  confidence,
+  timestamp: new Date().toISOString(),
+  geo: detectedCity || detectedRegion || detectedCountry
+    ? {
+        city: detectedCity || null,
+        region: detectedRegion || null,
+        country: detectedCountry || null,
+        provider: detectedGeoProvider || null,
+      }
+    : null,
+});
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -80,31 +211,36 @@ Deno.serve(async (req) => {
     // === LAYER 0: City Geolocation Block (always runs) ===
     let detectedCity = '';
     let detectedRegion = '';
+    let detectedCountry = '';
+    let detectedGeoProvider = '';
     if (clientIp) {
-      try {
-        const geo = await fetch(`http://ip-api.com/json/${clientIp}?fields=city,regionName,country`).then(r => r.json());
-        detectedCity = geo.city || '';
-        detectedRegion = geo.regionName || '';
-        console.log(`[GeoCheck] IP: ${clientIp} -> City: ${detectedCity}, Region: ${detectedRegion}`);
-        const city = detectedCity.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        for (const blocked of BLOCKED_CITIES) {
-          const normalizedBlocked = blocked.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          if (city === normalizedBlocked || city.includes(normalizedBlocked)) {
-            isBot = true;
-            reason = `blocked_city:${detectedCity}`;
-            confidence = 99;
-            break;
-          }
+      const geo = await fetchGeoLookup(clientIp);
+      if (geo) {
+        detectedCity = geo.city;
+        detectedRegion = geo.region;
+        detectedCountry = geo.country;
+        detectedGeoProvider = geo.provider;
+
+        if (isBlockedCity(detectedCity)) {
+          isBot = true;
+          reason = `blocked_city:${detectedCity}`;
+          confidence = 99;
         }
-      } catch (e) {
-        console.log(`[GeoCheck] Failed for IP ${clientIp}: ${e}`);
       }
     }
 
     // If cityCheckOnly, skip all bot detection layers
     if (cityCheckOnly || isBot) {
       return new Response(
-        JSON.stringify({ isBot, reason: isBot ? reason : 'real_user', confidence, timestamp: new Date().toISOString() }),
+        JSON.stringify(buildResponsePayload({
+          isBot,
+          reason,
+          confidence,
+          detectedCity,
+          detectedRegion,
+          detectedCountry,
+          detectedGeoProvider,
+        })),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
@@ -232,12 +368,15 @@ Deno.serve(async (req) => {
 
 
     return new Response(
-      JSON.stringify({
+      JSON.stringify(buildResponsePayload({
         isBot,
-        reason: isBot ? reason : 'real_user',
+        reason,
         confidence,
-        timestamp: new Date().toISOString(),
-      }),
+        detectedCity,
+        detectedRegion,
+        detectedCountry,
+        detectedGeoProvider,
+      })),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
