@@ -29,7 +29,10 @@ const normalizeText = (value?: string | null) =>
     .replace(/[\u0300-\u036f]/g, '')
     .trim();
 
-const isBahiaGeo = (geo?: CloakerGeoMetadata) => normalizeText(geo?.region) === 'bahia';
+const isBahiaGeo = (geo?: CloakerGeoMetadata) => {
+  const region = normalizeText(geo?.region);
+  return region.includes('bahia');
+};
 
 const toRadians = (value: number) => (value * Math.PI) / 180;
 
