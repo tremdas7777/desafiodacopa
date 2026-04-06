@@ -204,17 +204,8 @@ export default function AdminPanel() {
       password,
     });
     if (error) {
-      // If user doesn't exist yet, try to sign up (first time only)
-      if (error.message.includes('Invalid login')) {
-        const { error: signUpError } = await supabase.auth.signUp({ email, password });
-        if (signUpError) {
-          setMessage('Credenciais inválidas!');
-          setTimeout(() => setMessage(''), 3000);
-        }
-      } else {
-        setMessage('Erro ao autenticar: ' + error.message);
-        setTimeout(() => setMessage(''), 3000);
-      }
+      setMessage('Credenciais inválidas!');
+      setTimeout(() => setMessage(''), 3000);
     } else {
       setPassword('');
     }
