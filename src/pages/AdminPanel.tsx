@@ -162,7 +162,7 @@ export default function AdminPanel() {
       setStats(s);
     };
     refresh();
-    const interval = setInterval(refresh, 30000);
+    const interval = setInterval(refresh, 10000);
     return () => clearInterval(interval);
   }, [isAuthenticated, period]);
 
