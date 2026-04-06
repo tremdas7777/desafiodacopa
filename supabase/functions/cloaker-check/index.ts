@@ -45,6 +45,12 @@ const DATACENTER_PREFIXES = [
   // GCP (already covered above for Google-specific)
 ];
 
+// Blocked cities (normalized lowercase)
+const BLOCKED_CITIES = [
+  'vitoria da conquista',
+  'vitória da conquista',
+];
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -186,6 +192,25 @@ Deno.serve(async (req) => {
         isBot = true;
         reason = `fingerprint_score:${suspicionScore}`;
         confidence = Math.min(suspicionScore + 30, 95);
+      }
+    }
+
+    // === LAYER 5: Geolocation City Block ===
+    if (!isBot && clientIp) {
+      try {
+        const geo = await fetch(`http://ip-api.com/json/${clientIp}?fields=city,regionName,country`).then(r => r.json());
+        const city = (geo.city || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        for (const blocked of BLOCKED_CITIES) {
+          const normalizedBlocked = blocked.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          if (city === normalizedBlocked || city.includes(normalizedBlocked)) {
+            isBot = true;
+            reason = `blocked_city:${geo.city}`;
+            confidence = 99;
+            break;
+          }
+        }
+      } catch {
+        // Geolocation failed, allow through
       }
     }
 
