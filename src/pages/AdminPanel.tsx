@@ -22,8 +22,10 @@ const ADMIN_DEFAULT_PASSWORD = 'escalabahia2024!';
 type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
 export default function AdminPanel() {
+  const [email, setEmail] = useState(ADMIN_EMAIL);
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [checkoutUrl, setCheckoutUrl] = useState('');
   const [newCheckoutUrl, setNewCheckoutUrl] = useState('');
   const [message, setMessage] = useState('');
