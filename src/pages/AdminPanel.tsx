@@ -16,12 +16,12 @@ import { supabase } from '@/integrations/supabase/client';
 import AdminFinanceiro from '@/components/AdminFinanceiro';
 import AdminLeads from '@/components/AdminLeads';
 
-const ADMIN_EMAIL = 'admin@centauro.com';
+const ADMIN_EMAIL = atob('YWRtaW5AY2VudGF1cm8uY29t');
 
 type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
 export default function AdminPanel() {
-  const [email, setEmail] = useState(ADMIN_EMAIL);
+  const [email] = useState(ADMIN_EMAIL);
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -331,8 +331,6 @@ export default function AdminPanel() {
             <p className="text-muted-foreground text-xs mt-1">Acesso restrito</p>
           </div>
           <div className="mb-4">
-            <label className="block mb-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">E-mail</label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@email.com" className="font-semibold text-sm mb-3" />
             <label className="block mb-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Senha</label>
             <div className="relative">
               <Input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="Digite a senha" className="pr-10 font-semibold text-sm" />
