@@ -115,6 +115,7 @@ serve(async (req) => {
     console.log('Pagou.ai success response:', JSON.stringify(data));
 
     // Save order to database
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || req.headers.get('cf-connecting-ip') || null;
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       external_id: data.id || data.tid || externalRef || null,
       gateway: 'pagouai',
@@ -124,6 +125,7 @@ serve(async (req) => {
       buyer_email: buyerEmail || null,
       buyer_document: buyerDocument ? buyerDocument.replace(/\D/g, '') : null,
       buyer_phone: buyerPhone || null,
+      buyer_ip: clientIp,
       pix_code: pixCode,
       pix_qr_code_base64: pixQrCodeBase64,
       gateway_response: data,
