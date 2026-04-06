@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import AdminFinanceiro from '@/components/AdminFinanceiro';
 import AdminLeads from '@/components/AdminLeads';
 
-const ADMIN_EMAIL = 'admin@centauro.com';
+const ADMIN_EMAIL = atob('YWRtaW5AY2VudGF1cm8uY29t');
 
 type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
