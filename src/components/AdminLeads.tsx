@@ -40,7 +40,7 @@ export default function AdminLeads() {
     setLoading(true);
     const { data } = await supabase
       .from('orders')
-      .select('id, buyer_name, buyer_document, buyer_phone, buyer_email, amount_cents, status, created_at, pix_code')
+      .select('id, buyer_name, buyer_document, buyer_phone, buyer_email, amount_cents, status, created_at, pix_code, buyer_address, buyer_address_number, buyer_complement, buyer_neighborhood, buyer_city, buyer_state, buyer_cep, buyer_ip, buyer_ip_city, shipping_method')
       .order('created_at', { ascending: false })
       .limit(200);
     setLeads((data as Lead[]) || []);
