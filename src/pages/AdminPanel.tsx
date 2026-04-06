@@ -16,13 +16,16 @@ import { supabase } from '@/integrations/supabase/client';
 import AdminFinanceiro from '@/components/AdminFinanceiro';
 import AdminLeads from '@/components/AdminLeads';
 
-const ADMIN_PASSWORD = 'escalabahia';
+const ADMIN_EMAIL = 'admin@centauro.com';
+const ADMIN_DEFAULT_PASSWORD = 'escalabahia2024!';
 
 type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
 export default function AdminPanel() {
+  const [email, setEmail] = useState(ADMIN_EMAIL);
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [checkoutUrl, setCheckoutUrl] = useState('');
   const [newCheckoutUrl, setNewCheckoutUrl] = useState('');
   const [message, setMessage] = useState('');
@@ -121,13 +124,26 @@ export default function AdminPanel() {
     setOrdersLoading(false);
   };
 
+  // Check auth state on mount
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+      setAuthLoading(false);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setAuthLoading(false);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
     const saved = localStorage.getItem('checkoutUrl');
     if (saved) { setCheckoutUrl(saved); setNewCheckoutUrl(saved); }
     setExternalCheckout(localStorage.getItem('externalCheckout') === 'true');
     loadPixelConfigFromDb().then(async (cfg) => {
       setPixelConfig(cfg);
-      // Auto-migrate: if DB is empty but localStorage has data, push to DB
       const hasPixels = cfg.facebookPixels.length > 0 || cfg.tiktokPixels.length > 0 || cfg.googleAdsPixels.length > 0;
       if (!hasPixels) {
         try {
@@ -137,7 +153,6 @@ export default function AdminPanel() {
             if (localCfg.facebookPixels?.length || localCfg.tiktokPixels?.length || localCfg.googleAdsPixels?.length) {
               await savePixelConfig(localCfg);
               setPixelConfig(localCfg);
-              console.log('[Pixels] Migrated localStorage config to database');
             }
           }
         } catch { /* ignore */ }
@@ -145,15 +160,14 @@ export default function AdminPanel() {
     });
     loadWebhooksFromDb().then(config => {
       setWebhookConfig(config);
-      saveWebhookConfig(config); // sync to localStorage
+      saveWebhookConfig(config);
     });
     setUtmifyConfig(getUtmifyConfig());
     fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
-    // Load cloaker config
     supabase.from('cloaker_config').select('enabled').limit(1).single().then(({ data }) => {
       if (data) setCloakerEnabled(data.enabled);
     });
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -172,12 +186,26 @@ export default function AdminPanel() {
     }
   }, [isAuthenticated, activeTab]);
 
-  const handleLogin = () => {
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true); setPassword(''); setMessage('');
+  const handleLogin = async () => {
+    setMessage('');
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      // If user doesn't exist yet, try to sign up (first time only)
+      if (error.message.includes('Invalid login')) {
+        const { error: signUpError } = await supabase.auth.signUp({ email, password });
+        if (signUpError) {
+          setMessage('Credenciais inválidas!');
+          setTimeout(() => setMessage(''), 3000);
+        }
+      } else {
+        setMessage('Erro ao autenticar: ' + error.message);
+        setTimeout(() => setMessage(''), 3000);
+      }
     } else {
-      setMessage('Senha incorreta!');
-      setTimeout(() => setMessage(''), 3000);
+      setPassword('');
     }
   };
 
@@ -284,15 +312,25 @@ export default function AdminPanel() {
 
   const pct = (a: number, b: number) => (b === 0 ? 0 : Math.round((a / b) * 100));
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-8 border border-border shadow-sm">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-black text-foreground">Painel Admin</h1>
-            <p className="text-muted-foreground text-xs mt-1">Gerenciamento</p>
+            <p className="text-muted-foreground text-xs mt-1">Acesso restrito</p>
           </div>
           <div className="mb-4">
+            <label className="block mb-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">E-mail</label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@email.com" className="font-semibold text-sm mb-3" />
             <label className="block mb-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Senha</label>
             <div className="relative">
               <Input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="Digite a senha" className="pr-10 font-semibold text-sm" />
@@ -354,7 +392,7 @@ export default function AdminPanel() {
             <h1 className="text-primary-foreground font-black text-sm">Painel Admin</h1>
             <p className="text-primary-foreground/60 text-[10px]">Gerenciamento</p>
           </div>
-          <Button onClick={() => { setIsAuthenticated(false); setPassword(''); setMessage(''); }} variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 text-xs font-bold">
+          <Button onClick={async () => { await supabase.auth.signOut(); setPassword(''); setMessage(''); }} variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 text-xs font-bold">
             <LogOut size={14} className="mr-1" /> Sair
           </Button>
         </div>
