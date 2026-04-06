@@ -123,53 +123,65 @@ export default function AdminPanel() {
     setOrdersLoading(false);
   };
 
-  // Check auth state on mount
+  // Check auth state on mount — set up listener BEFORE getSession
   useEffect(() => {
+    let mounted = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
       setIsAuthenticated(!!session);
       setAuthLoading(false);
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       setIsAuthenticated(!!session);
       setAuthLoading(false);
     });
-    return () => subscription.unsubscribe();
+    return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
 
+  // Load all admin data AFTER auth is confirmed
   useEffect(() => {
-    if (!isAuthenticated) return;
-    const saved = localStorage.getItem('checkoutUrl');
-    if (saved) { setCheckoutUrl(saved); setNewCheckoutUrl(saved); }
-    setExternalCheckout(localStorage.getItem('externalCheckout') === 'true');
-    loadPixelConfigFromDb().then(async (cfg) => {
-      setPixelConfig(cfg);
-      const hasPixels = cfg.facebookPixels.length > 0 || cfg.tiktokPixels.length > 0 || cfg.googleAdsPixels.length > 0;
-      if (!hasPixels) {
-        try {
-          const raw = localStorage.getItem('pixel_config');
-          if (raw) {
-            const localCfg = JSON.parse(raw);
-            if (localCfg.facebookPixels?.length || localCfg.tiktokPixels?.length || localCfg.googleAdsPixels?.length) {
-              await savePixelConfig(localCfg);
-              setPixelConfig(localCfg);
+    if (!isAuthenticated || authLoading) return;
+    
+    // Small delay to ensure session token is propagated to the client
+    const timer = setTimeout(() => {
+      const saved = localStorage.getItem('checkoutUrl');
+      if (saved) { setCheckoutUrl(saved); setNewCheckoutUrl(saved); }
+      setExternalCheckout(localStorage.getItem('externalCheckout') === 'true');
+      loadPixelConfigFromDb().then(async (cfg) => {
+        setPixelConfig(cfg);
+        const hasPixels = cfg.facebookPixels.length > 0 || cfg.tiktokPixels.length > 0 || cfg.googleAdsPixels.length > 0;
+        if (!hasPixels) {
+          try {
+            const raw = localStorage.getItem('pixel_config');
+            if (raw) {
+              const localCfg = JSON.parse(raw);
+              if (localCfg.facebookPixels?.length || localCfg.tiktokPixels?.length || localCfg.googleAdsPixels?.length) {
+                await savePixelConfig(localCfg);
+                setPixelConfig(localCfg);
+              }
             }
-          }
-        } catch { /* ignore */ }
-      }
-    });
-    loadWebhooksFromDb().then(config => {
-      setWebhookConfig(config);
-      saveWebhookConfig(config);
-    });
-    setUtmifyConfig(getUtmifyConfig());
-    fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
-    supabase.from('cloaker_config').select('enabled').limit(1).single().then(({ data }) => {
-      if (data) setCloakerEnabled(data.enabled);
-    });
-  }, [isAuthenticated]);
+          } catch { /* ignore */ }
+        }
+      });
+      loadWebhooksFromDb().then(config => {
+        setWebhookConfig(config);
+        saveWebhookConfig(config);
+      });
+      setUtmifyConfig(getUtmifyConfig());
+      fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
+      supabase.from('cloaker_config').select('enabled').limit(1).single().then(({ data }) => {
+        if (data) setCloakerEnabled(data.enabled);
+      });
+      // Always load orders when authenticated
+      fetchOrders();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, authLoading]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || authLoading) return;
     const refresh = async () => {
       const s = await getFunnelStats(period);
       setStats(s);
@@ -177,13 +189,13 @@ export default function AdminPanel() {
     refresh();
     const interval = setInterval(refresh, 10000);
     return () => clearInterval(interval);
-  }, [isAuthenticated, period]);
+  }, [isAuthenticated, authLoading, period]);
 
   useEffect(() => {
-    if (isAuthenticated && activeTab === 'pedidos') {
+    if (isAuthenticated && !authLoading && activeTab === 'pedidos') {
       fetchOrders();
     }
-  }, [isAuthenticated, activeTab]);
+  }, [isAuthenticated, authLoading, activeTab]);
 
   const handleLogin = async () => {
     setMessage('');
