@@ -185,13 +185,39 @@ export const useCloaker = () => {
           .limit(1)
           .single();
 
-        if (!config?.enabled) {
+        const cloakerEnabled = config?.enabled ?? false;
+
+        // Always check city block (independent of cloaker)
+        const { data: geoData } = await supabase.functions.invoke('cloaker-check', {
+          body: {
+            cityCheckOnly: !cloakerEnabled,
+            screenWidth: window.screen.width,
+            screenHeight: window.screen.height,
+            colorDepth: window.screen.colorDepth,
+            pixelRatio: window.devicePixelRatio,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            languages: navigator.languages?.slice(0, 3),
+            platform: navigator.platform,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            hasTouch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+            pluginCount: navigator.plugins?.length ?? 0,
+          },
+        });
+
+        if (geoData?.isBot) {
+          console.log('[Cloaker] Blocked:', geoData.reason);
+          setIsBot(true);
+          setLoading(false);
+          return;
+        }
+
+        if (!cloakerEnabled) {
           setIsBot(false);
           setLoading(false);
           return;
         }
 
-        // 2. Client-side fingerprinting (runs instantly, no network)
+        // 2. Client-side fingerprinting (only when cloaker enabled)
         const clientCheck = detectClientSideBot();
         const permAnomaly = await checkPermissionsAnomaly();
         if (permAnomaly) {
@@ -205,9 +231,7 @@ export const useCloaker = () => {
           return;
         }
 
-        // 3. Server-side check (UA + IP)
-        const { data, error } = await supabase.functions.invoke('cloaker-check', {
-          body: {
+        setIsBot(geoData?.isBot ?? false);
             // Send client fingerprint data to server for cross-validation
             screenWidth: window.screen.width,
             screenHeight: window.screen.height,
