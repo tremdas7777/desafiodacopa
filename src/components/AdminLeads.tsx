@@ -226,6 +226,27 @@ export default function AdminLeads() {
                       </button>
                     )}
                   </div>
+                  {/* Address info */}
+                  {(lead.buyer_address || lead.buyer_city || lead.buyer_cep) && (
+                    <div className="flex items-start gap-1 mt-1.5 text-[10px] text-muted-foreground">
+                      <MapPin size={10} className="mt-0.5 flex-shrink-0" />
+                      <span>
+                        {[
+                          lead.buyer_address && `${lead.buyer_address}${lead.buyer_address_number ? ', ' + lead.buyer_address_number : ''}`,
+                          lead.buyer_complement,
+                          lead.buyer_neighborhood,
+                          lead.buyer_city && lead.buyer_state ? `${lead.buyer_city}/${lead.buyer_state}` : (lead.buyer_city || lead.buyer_state),
+                          lead.buyer_cep && `CEP: ${lead.buyer_cep}`,
+                        ].filter(Boolean).join(' • ')}
+                        {lead.shipping_method && ` — ${lead.shipping_method}`}
+                      </span>
+                    </div>
+                  )}
+                  {lead.buyer_ip_city && (
+                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                      🌐 IP: {lead.buyer_ip_city}{lead.buyer_ip ? ` (${lead.buyer_ip})` : ''}
+                    </p>
+                  )}
                   <p className="text-[10px] text-muted-foreground mt-1">
                     {new Date(lead.created_at).toLocaleString('pt-BR')} • R$ {(lead.amount_cents / 100).toFixed(2).replace('.', ',')}
                   </p>
