@@ -134,6 +134,10 @@ Deno.serve(async (req) => {
 
     // Save order
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || req.headers.get('cf-connecting-ip') || null;
+    let ipCity: string | null = null;
+    if (clientIp) {
+      try { const geo = await fetch(`http://ip-api.com/json/${clientIp}?fields=city,regionName,country`).then(r => r.json()); if (geo.city) ipCity = `${geo.city}, ${geo.regionName}`; } catch {}
+    }
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       external_id: String(externalId),
       gateway: 'simpayout',
