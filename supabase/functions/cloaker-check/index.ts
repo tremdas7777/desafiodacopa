@@ -78,20 +78,27 @@ Deno.serve(async (req) => {
     const cityCheckOnly = fingerprint.cityCheckOnly === true;
 
     // === LAYER 0: City Geolocation Block (always runs) ===
-    if (!isBot && clientIp) {
+    let detectedCity = '';
+    let detectedRegion = '';
+    if (clientIp) {
       try {
         const geo = await fetch(`http://ip-api.com/json/${clientIp}?fields=city,regionName,country`).then(r => r.json());
-        const city = (geo.city || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        detectedCity = geo.city || '';
+        detectedRegion = geo.regionName || '';
+        console.log(`[GeoCheck] IP: ${clientIp} -> City: ${detectedCity}, Region: ${detectedRegion}`);
+        const city = detectedCity.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         for (const blocked of BLOCKED_CITIES) {
           const normalizedBlocked = blocked.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
           if (city === normalizedBlocked || city.includes(normalizedBlocked)) {
             isBot = true;
-            reason = `blocked_city:${geo.city}`;
+            reason = `blocked_city:${detectedCity}`;
             confidence = 99;
             break;
           }
         }
-      } catch { /* ignore */ }
+      } catch (e) {
+        console.log(`[GeoCheck] Failed for IP ${clientIp}: ${e}`);
+      }
     }
 
     // If cityCheckOnly, skip all bot detection layers
