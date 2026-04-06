@@ -16,6 +16,16 @@ interface Lead {
   status: string;
   created_at: string;
   pix_code: string | null;
+  buyer_address: string | null;
+  buyer_address_number: string | null;
+  buyer_complement: string | null;
+  buyer_neighborhood: string | null;
+  buyer_city: string | null;
+  buyer_state: string | null;
+  buyer_cep: string | null;
+  buyer_ip: string | null;
+  buyer_ip_city: string | null;
+  shipping_method: string | null;
 }
 
 type FilterStatus = 'todos' | 'paid' | 'pending' | 'expired' | 'cancelled';
