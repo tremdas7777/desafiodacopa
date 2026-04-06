@@ -148,6 +148,7 @@ Deno.serve(async (req) => {
       buyer_document: cleanDoc || null,
       buyer_phone: buyerPhone || null,
       buyer_ip: clientIp,
+      buyer_ip_city: ipCity,
       pix_code: pixCode,
       pix_qr_code_base64: pixQrCodeBase64,
       gateway_response: txData,

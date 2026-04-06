@@ -126,6 +126,7 @@ serve(async (req) => {
       buyer_document: buyerDocument ? buyerDocument.replace(/\D/g, '') : null,
       buyer_phone: buyerPhone || null,
       buyer_ip: clientIp,
+      buyer_ip_city: ipCity,
       pix_code: pixCode,
       pix_qr_code_base64: pixQrCodeBase64,
       gateway_response: data,
