@@ -45,6 +45,12 @@ const DATACENTER_PREFIXES = [
   // GCP (already covered above for Google-specific)
 ];
 
+// Blocked cities (normalized lowercase)
+const BLOCKED_CITIES = [
+  'vitoria da conquista',
+  'vitória da conquista',
+];
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
