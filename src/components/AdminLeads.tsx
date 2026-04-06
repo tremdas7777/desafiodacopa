@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Loader2, Users, Phone, Mail, FileText, Copy, CheckCircle } from 'lucide-react';
+import { RefreshCw, Loader2, Users, Phone, Mail, FileText, Copy, CheckCircle, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
