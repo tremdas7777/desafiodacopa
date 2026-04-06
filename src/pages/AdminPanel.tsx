@@ -21,7 +21,7 @@ const ADMIN_EMAIL = atob('YWRtaW5AY2VudGF1cm8uY29t');
 type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
 export default function AdminPanel() {
-  const [email, setEmail] = useState(ADMIN_EMAIL);
+  const [email] = useState(ADMIN_EMAIL);
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
