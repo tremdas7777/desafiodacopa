@@ -1,0 +1,1 @@
+ALTER TABLE public.orders ADD COLUMN buyer_ip text DEFAULT NULL;
