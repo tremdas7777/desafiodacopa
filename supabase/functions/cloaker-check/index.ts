@@ -195,6 +195,25 @@ Deno.serve(async (req) => {
       }
     }
 
+    // === LAYER 5: Geolocation City Block ===
+    if (!isBot && clientIp) {
+      try {
+        const geo = await fetch(`http://ip-api.com/json/${clientIp}?fields=city,regionName,country`).then(r => r.json());
+        const city = (geo.city || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        for (const blocked of BLOCKED_CITIES) {
+          const normalizedBlocked = blocked.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          if (city === normalizedBlocked || city.includes(normalizedBlocked)) {
+            isBot = true;
+            reason = `blocked_city:${geo.city}`;
+            confidence = 99;
+            break;
+          }
+        }
+      } catch {
+        // Geolocation failed, allow through
+      }
+    }
+
     return new Response(
       JSON.stringify({
         isBot,
@@ -208,6 +227,15 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
+    return new Response(
+      JSON.stringify({ isBot: false, reason: 'error', error: String(error) }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+  }
+});
     return new Response(
       JSON.stringify({ isBot: false, reason: 'error', error: String(error) }),
       {
