@@ -298,8 +298,6 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
-        sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
-        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
@@ -337,8 +335,6 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
-        sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
-        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
@@ -376,8 +372,6 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
-        sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
-        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
       } catch (err: any) {
@@ -414,8 +408,6 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
-        sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
-        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
         console.error('PIX error:', err);
@@ -452,8 +444,6 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
-        sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
-        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
         console.error('PIX error:', err);
@@ -492,8 +482,6 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         setShowPixPopup(true);
-        sendWhatsAppPix(data.pix_code || '', shippingCost || 44.90);
-        sendSmsPix(data.pix_code || '', shippingCost || 44.90);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
         console.error('PIX error:', err);
