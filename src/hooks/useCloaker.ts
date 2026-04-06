@@ -226,19 +226,20 @@ export const useCloaker = () => {
           setIsBot(false);
           setLoading(false);
         } else {
-          // Cloaker disabled: show page immediately, check city in background
+          // Cloaker disabled: still enforce city block before showing the page
+          const { data } = await supabase.functions.invoke('cloaker-check', {
+            body: { cityCheckOnly: true },
+          });
+
+          if (data?.isBot) {
+            console.log('[Cloaker] City blocked:', data.reason);
+            setIsBot(true);
+            setLoading(false);
+            return;
+          }
+
           setIsBot(false);
           setLoading(false);
-
-          // Non-blocking city check
-          supabase.functions.invoke('cloaker-check', {
-            body: { cityCheckOnly: true },
-          }).then(({ data }) => {
-            if (data?.isBot) {
-              console.log('[Cloaker] City blocked:', data.reason);
-              setIsBot(true);
-            }
-          }).catch(() => { /* ignore */ });
         }
       } catch (err) {
         console.warn('[Cloaker] Error, defaulting to real page:', err);
