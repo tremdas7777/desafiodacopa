@@ -599,6 +599,7 @@ export default function Checkout() {
     if (currentStep === 1 && isStep1Valid) {
       setShowFieldErrors(false);
       setCurrentStep(2);
+      trackAbandoned(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === 1) {
       scrollToFirstError();
