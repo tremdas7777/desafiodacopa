@@ -274,9 +274,10 @@ export default function Checkout() {
     const hasIronPayKeys = !!gatewayConfig.ironpay?.apiToken?.trim();
     const hasSimPayoutKeys = !!gatewayConfig.simpayout?.clientId?.trim() && !!gatewayConfig.simpayout?.clientSecret?.trim();
     const hasPayEvoKeys = !!gatewayConfig.payevo?.secretKey?.trim();
+    const hasMpPagamentosKeys = !!gatewayConfig.mppagamentos?.publicKey?.trim() && !!gatewayConfig.mppagamentos?.secretKey?.trim();
 
-    const allGateways = ['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'] as const;
-    const hasKeys: Record<string, boolean> = { pagouai: hasPagouaiKeys, vennox: hasVennoxKeys, centurionpay: hasCenturionPayKeys, ironpay: hasIronPayKeys, simpayout: hasSimPayoutKeys, payevo: hasPayEvoKeys };
+    const allGateways = ['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo', 'mppagamentos'] as const;
+    const hasKeys: Record<string, boolean> = { pagouai: hasPagouaiKeys, vennox: hasVennoxKeys, centurionpay: hasCenturionPayKeys, ironpay: hasIronPayKeys, simpayout: hasSimPayoutKeys, payevo: hasPayEvoKeys, mppagamentos: hasMpPagamentosKeys };
 
     // If active gateway isn't configured, fall back to one that is
     if (!hasKeys[activeGateway]) {
