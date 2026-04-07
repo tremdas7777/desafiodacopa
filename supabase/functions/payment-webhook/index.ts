@@ -220,6 +220,8 @@ function extractExternalId(body: any): string | null {
   const id = String(
     body.data?.id ||
     body.data?.transaction_id ||
+    body.transaction?.id ||
+    body.transaction?.identifier ||
     body.transaction_id ||
     body.transaction_hash ||
     body.tid ||
