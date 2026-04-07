@@ -86,7 +86,7 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
     }
 
     const config: PaymentGatewayConfig = {
-      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'].includes(data.active_gateway)
+      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo', 'mppagamentos'].includes(data.active_gateway)
         ? data.active_gateway
         : 'centurionpay') as PaymentGatewayConfig['activeGateway'],
       pagouai: {
