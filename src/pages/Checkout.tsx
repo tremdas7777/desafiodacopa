@@ -332,6 +332,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -371,6 +372,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -410,6 +412,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -447,6 +450,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -485,6 +489,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -525,6 +530,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
