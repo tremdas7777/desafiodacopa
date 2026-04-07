@@ -341,7 +341,7 @@ serve(async (req) => {
 
     // Try to find the order, with retry for race condition (webhook arrives before INSERT completes)
     let orderData: any = null;
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    for (let attempt = 1; attempt <= 5; attempt++) {
       const { data } = await supabase
         .from('orders')
         .select('*')
@@ -353,14 +353,14 @@ serve(async (req) => {
         break;
       }
 
-      if (attempt < 3) {
-        console.log(`[payment-webhook] Order not found for external_id: ${externalId}, retry ${attempt}/3 in 3s...`);
+      if (attempt < 5) {
+        console.log(`[payment-webhook] Order not found for external_id: ${externalId}, retry ${attempt}/5 in 3s...`);
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
 
     if (!orderData) {
-      console.warn(`[payment-webhook] Order not found after 3 retries for external_id: ${externalId}`);
+      console.warn(`[payment-webhook] Order not found after 5 retries for external_id: ${externalId}`);
       return new Response(JSON.stringify({ received: true, warning: 'order_not_found' }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
