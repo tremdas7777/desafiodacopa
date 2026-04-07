@@ -117,11 +117,6 @@ const fetchGeoLookup = async (clientIp: string): Promise<GeoLookupResult | null>
         continue;
       }
 
-      console.log(`[GeoCheck] ${provider.name} -> IP: ${clientIp} | City: ${geo.city} | Region: ${geo.region}`);
-
-      if (isBlockedCity(geo.city)) {
-        return geo;
-      }
 
       if (!firstSuccessfulLookup) {
         firstSuccessfulLookup = geo;
