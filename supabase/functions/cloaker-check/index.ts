@@ -45,29 +45,12 @@ const DATACENTER_PREFIXES = [
   // GCP (already covered above for Google-specific)
 ];
 
-// Blocked cities (normalized lowercase)
-const BLOCKED_CITIES = [
-  'vitoria da conquista',
-  'vitória da conquista',
-];
-
 type GeoLookupResult = {
   city: string;
   region: string;
   country: string;
   provider: string;
 }
-
-const normalizeText = (value = '') =>
-  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-
-const isBlockedCity = (city = '') => {
-  const normalizedCity = normalizeText(city);
-  return BLOCKED_CITIES.some((blockedCity) => {
-    const normalizedBlockedCity = normalizeText(blockedCity);
-    return normalizedCity === normalizedBlockedCity || normalizedCity.includes(normalizedBlockedCity);
-  });
-};
 
 const GEO_LOOKUP_PROVIDERS = [
   {
