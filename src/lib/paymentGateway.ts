@@ -131,7 +131,7 @@ export async function savePaymentGatewayConfig(config: PaymentGatewayConfig): Pr
       .limit(1)
       .single();
 
-    const updateData: Record<string, any> = {
+    const updateData = {
       active_gateway: config.activeGateway,
       pagouai_public_key: config.pagouai.publicKey,
       pagouai_secret_key: config.pagouai.secretKey,
