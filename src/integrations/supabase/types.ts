@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      abandoned_checkouts: {
+        Row: {
+          buyer_city: string | null
+          buyer_document: string | null
+          buyer_email: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state: string | null
+          converted: boolean
+          created_at: string
+          id: string
+          last_step: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_city?: string | null
+          buyer_document?: string | null
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          buyer_state?: string | null
+          converted?: boolean
+          created_at?: string
+          id?: string
+          last_step?: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_city?: string | null
+          buyer_document?: string | null
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          buyer_state?: string | null
+          converted?: boolean
+          created_at?: string
+          id?: string
+          last_step?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cloaker_config: {
         Row: {
           enabled: boolean
