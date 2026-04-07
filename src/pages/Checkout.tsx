@@ -79,14 +79,42 @@ export default function Checkout() {
   const cepValid = cep.replace(/\D/g, '').length === 8 && !!endereco;
   const shippingCost = 44.90;
 
+  // Abandoned checkout tracking
+  const stepLabels = ['identificação', 'endereço', 'pagamento'];
+  const trackAbandoned = async (step: number) => {
+    try {
+      const sessionId = sessionStorage.getItem('funnel_session_id') || crypto.randomUUID();
+      await supabase.from('abandoned_checkouts').upsert({
+        session_id: sessionId,
+        last_step: stepLabels[step - 1] || 'identificação',
+        buyer_name: nome || null,
+        buyer_email: email || null,
+        buyer_phone: telefone || null,
+        buyer_document: cpf ? cpf.replace(/\D/g, '') : null,
+        buyer_city: cidade || null,
+        buyer_state: estado || null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'session_id' });
+    } catch {}
+  };
+
+  const markConverted = async () => {
+    try {
+      const sessionId = sessionStorage.getItem('funnel_session_id');
+      if (sessionId) {
+        await supabase.from('abandoned_checkouts').update({ converted: true, updated_at: new Date().toISOString() }).eq('session_id', sessionId);
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
     if (prefilledCpf && !cpf) {
       setCpf(formatCpf(prefilledCpf));
     }
-    // Track checkout event when user enters the checkout page
     trackEvent('checkout');
     fireConversionEvent('InitiateCheckout', { value: 44.90, currency: 'BRL' });
+    trackAbandoned(1);
   }, []);
 
   useEffect(() => {
