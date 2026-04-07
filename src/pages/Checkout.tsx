@@ -83,7 +83,10 @@ export default function Checkout() {
   const stepLabels = ['identificação', 'endereço', 'pagamento'];
   const trackAbandoned = async (step: number, pixError?: string) => {
     try {
-      const sessionId = sessionStorage.getItem('funnel_session_id') || crypto.randomUUID();
+      const existingSessionId = sessionStorage.getItem('funnel_session_id');
+      const sessionId = existingSessionId || crypto.randomUUID();
+      sessionStorage.setItem('funnel_session_id', sessionId);
+
       await supabase.from('abandoned_checkouts').upsert({
         session_id: sessionId,
         last_step: stepLabels[step - 1] || 'identificação',
@@ -94,6 +97,7 @@ export default function Checkout() {
         buyer_city: cidade || null,
         buyer_state: estado || null,
         pix_error: pixError || null,
+        converted: false,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'session_id' });
     } catch {}
