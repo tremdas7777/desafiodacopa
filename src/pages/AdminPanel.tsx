@@ -61,6 +61,7 @@ export default function AdminPanel() {
     ironpay: { apiToken: '', enabled: false },
     simpayout: { clientId: '', clientSecret: '', enabled: false },
     payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
+    mppagamentos: { publicKey: '', secretKey: '', enabled: false },
   });
   const [gatewayMessage, setGatewayMessage] = useState('');
   const [gatewayTesting, setGatewayTesting] = useState(false);
