@@ -15,6 +15,7 @@ import { fetchPaymentGatewayConfig, savePaymentGatewayConfig, type PaymentGatewa
 import { supabase } from '@/integrations/supabase/client';
 import AdminFinanceiro from '@/components/AdminFinanceiro';
 import AdminLeads from '@/components/AdminLeads';
+import AdminAbandonedCheckouts from '@/components/AdminAbandonedCheckouts';
 
 const ADMIN_EMAIL = atob('YWRtaW5AY2VudGF1cm8uY29t');
 
