@@ -19,7 +19,7 @@ import AdminAbandonedCheckouts from '@/components/AdminAbandonedCheckouts';
 
 const ADMIN_EMAIL = atob('YWRtaW5AY2VudGF1cm8uY29t');
 
-type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
+type Tab = 'analytics' | 'financeiro' | 'leads' | 'abandonados' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
 export default function AdminPanel() {
   const [email] = useState(ADMIN_EMAIL);
