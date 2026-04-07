@@ -16,6 +16,7 @@ interface AbandonedCheckout {
   buyer_document: string | null;
   buyer_city: string | null;
   buyer_state: string | null;
+  pix_error: string | null;
   converted: boolean;
   created_at: string;
   updated_at: string;
