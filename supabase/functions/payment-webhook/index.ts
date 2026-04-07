@@ -360,7 +360,7 @@ serve(async (req) => {
     }
 
     if (!orderData) {
-      console.warn(`[payment-webhook] Order not found after 3 retries for external_id: ${externalId}`);
+      console.warn(`[payment-webhook] Order not found after 5 retries for external_id: ${externalId}`);
       return new Response(JSON.stringify({ received: true, warning: 'order_not_found' }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
