@@ -295,10 +295,6 @@ Deno.serve(async (req) => {
         isBot,
         reason,
         confidence,
-        detectedCity,
-        detectedRegion,
-        detectedCountry,
-        detectedGeoProvider,
       })),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
