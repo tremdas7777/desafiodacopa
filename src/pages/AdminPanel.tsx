@@ -376,6 +376,7 @@ export default function AdminPanel() {
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
     { id: 'financeiro', label: 'Financeiro', icon: <DollarSign size={14} /> },
     { id: 'leads', label: 'Leads', icon: <Users size={14} /> },
+    { id: 'abandonados', label: 'Abandonados', icon: <AlertTriangle size={14} /> },
     { id: 'cloaker', label: 'Cloaker', icon: <Shield size={14} /> },
     { id: 'pixels', label: 'Pixels', icon: <Code size={14} /> },
     { id: 'webhooks', label: 'Webhooks', icon: <Bell size={14} /> },
