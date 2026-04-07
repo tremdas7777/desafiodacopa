@@ -230,9 +230,7 @@ export default function Checkout() {
       return;
     }
 
-    trackEvent('purchase');
-    // Purchase conversion is fired ONLY when payment is confirmed (in PixPopup or server-side webhook)
-    // Never fire Purchase here - the user hasn't paid yet
+    // Purchase event is tracked AFTER successful PIX creation (not here)
 
     const gatewayConfig = await fetchPaymentGatewayConfig();
     let activeGateway = gatewayConfig.activeGateway;
