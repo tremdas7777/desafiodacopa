@@ -177,27 +177,12 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
             </div>
           )}
 
-          {/* Step-by-step instructions */}
+          {/* PIX Code */}
           {pixCode && (
             <div className="space-y-2">
-              <div className="grid grid-cols-3 gap-2">
-                <div className={`flex flex-col items-center gap-1 rounded-lg p-2 border transition-colors ${copied ? 'border-centauro-green/40 bg-centauro-green/5' : 'border-border/50 bg-secondary/50'}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${copied ? 'bg-centauro-green text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>1</div>
-                  <Copy size={14} className={copied ? 'text-centauro-green' : 'text-muted-foreground'} />
-                  <span className="text-[9px] font-semibold text-muted-foreground text-center leading-tight">Copie o código</span>
-                </div>
-                <div className="flex flex-col items-center gap-1 rounded-lg p-2 border border-border/50 bg-secondary/50">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black bg-muted-foreground/20 text-muted-foreground">2</div>
-                  <Smartphone size={14} className="text-muted-foreground" />
-                  <span className="text-[9px] font-semibold text-muted-foreground text-center leading-tight">Abra seu banco</span>
-                </div>
-                <div className="flex flex-col items-center gap-1 rounded-lg p-2 border border-border/50 bg-secondary/50">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black bg-muted-foreground/20 text-muted-foreground">3</div>
-                  <ClipboardCheck size={14} className="text-muted-foreground" />
-                  <span className="text-[9px] font-semibold text-muted-foreground text-center leading-tight">Cole no PIX</span>
-                </div>
-              </div>
-
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                Código PIX (Copia e Cola)
+              </label>
               <div className="bg-secondary rounded-xl p-2.5 break-all">
                 <p className="text-[11px] font-mono text-foreground leading-relaxed max-h-16 overflow-y-auto">
                   {pixCode}
