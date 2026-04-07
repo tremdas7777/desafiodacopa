@@ -313,6 +313,7 @@ async function buildFacebookUserData(userData?: { email?: string; phone?: string
   
   const result: Record<string, any> = {
     client_user_agent: navigator.userAgent,
+    client_ip_address: undefined, // Can't reliably get from client, server-side handles this
   };
 
   if (fbp) result.fbp = fbp;
@@ -327,12 +328,21 @@ async function buildFacebookUserData(userData?: { email?: string; phone?: string
     }
   }
 
+  // Generate external_id from session for consistent user matching
+  const sessionId = sessionStorage.getItem('funnel_session_id') || '';
+  if (sessionId) {
+    result.external_id = [await sha256(sessionId)];
+  }
+
   if (userData?.email) result.em = [await sha256(userData.email)];
   if (userData?.phone) {
     const phone = userData.phone.replace(/\D/g, '');
     const fullPhone = phone.startsWith('55') ? phone : `55${phone}`;
     result.ph = [await sha256(fullPhone)];
   }
+
+  // Country code for better matching
+  result.country = [await sha256('br')];
 
   return result;
 }
