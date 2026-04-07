@@ -159,6 +159,8 @@ export async function savePaymentGatewayConfig(config: PaymentGatewayConfig): Pr
       payevo_company_id: config.payevo.companyId,
       payevo_receiver_id: config.payevo.receiverId,
       payevo_api_key: config.payevo.apiKey,
+      mppagamentos_public_key: config.mppagamentos.publicKey,
+      mppagamentos_secret_key: config.mppagamentos.secretKey,
       updated_at: new Date().toISOString(),
     };
 
