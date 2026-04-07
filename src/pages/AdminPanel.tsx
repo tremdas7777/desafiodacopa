@@ -77,6 +77,7 @@ export default function AdminPanel() {
         'Iron Pay': { apiToken: gatewayConfig.ironpay.apiToken },
         'Sim Payout': { clientId: gatewayConfig.simpayout.clientId, clientSecret: gatewayConfig.simpayout.clientSecret },
         'PayEvo': { secretKey: gatewayConfig.payevo.secretKey, companyId: gatewayConfig.payevo.companyId, receiverId: gatewayConfig.payevo.receiverId, apiKey: gatewayConfig.payevo.apiKey },
+        'MP Pagamentos': { publicKey: gatewayConfig.mppagamentos.publicKey, secretKey: gatewayConfig.mppagamentos.secretKey },
       };
       const fnMap: Record<string, string> = {
         'Pagou.ai': 'criar-pix',
@@ -85,6 +86,7 @@ export default function AdminPanel() {
         'Iron Pay': 'criar-pix-ironpay',
         'Sim Payout': 'criar-pix-simpayout',
         'PayEvo': 'criar-pix-payevo',
+        'MP Pagamentos': 'criar-pix-mppagamentos',
       };
       const { data, error } = await supabase.functions.invoke(fnMap[gatewayName], {
         body: {
