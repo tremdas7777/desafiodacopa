@@ -290,6 +290,11 @@ export default function AdminAbandonedCheckouts() {
                       {[item.buyer_city, item.buyer_state].filter(Boolean).join('/')}
                     </div>
                   )}
+                  {item.pix_error && (
+                    <p className="text-[10px] text-destructive font-bold mt-0.5">
+                      ⚠️ {item.pix_error}
+                    </p>
+                  )}
                   <p className="text-[10px] text-muted-foreground mt-1">
                     {new Date(item.created_at).toLocaleString('pt-BR')}
                   </p>
