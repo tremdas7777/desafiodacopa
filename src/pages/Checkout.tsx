@@ -79,14 +79,42 @@ export default function Checkout() {
   const cepValid = cep.replace(/\D/g, '').length === 8 && !!endereco;
   const shippingCost = 44.90;
 
+  // Abandoned checkout tracking
+  const stepLabels = ['identificação', 'endereço', 'pagamento'];
+  const trackAbandoned = async (step: number) => {
+    try {
+      const sessionId = sessionStorage.getItem('funnel_session_id') || crypto.randomUUID();
+      await supabase.from('abandoned_checkouts').upsert({
+        session_id: sessionId,
+        last_step: stepLabels[step - 1] || 'identificação',
+        buyer_name: nome || null,
+        buyer_email: email || null,
+        buyer_phone: telefone || null,
+        buyer_document: cpf ? cpf.replace(/\D/g, '') : null,
+        buyer_city: cidade || null,
+        buyer_state: estado || null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'session_id' });
+    } catch {}
+  };
+
+  const markConverted = async () => {
+    try {
+      const sessionId = sessionStorage.getItem('funnel_session_id');
+      if (sessionId) {
+        await supabase.from('abandoned_checkouts').update({ converted: true, updated_at: new Date().toISOString() }).eq('session_id', sessionId);
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
     if (prefilledCpf && !cpf) {
       setCpf(formatCpf(prefilledCpf));
     }
-    // Track checkout event when user enters the checkout page
     trackEvent('checkout');
     fireConversionEvent('InitiateCheckout', { value: 44.90, currency: 'BRL' });
+    trackAbandoned(1);
   }, []);
 
   useEffect(() => {
@@ -296,6 +324,7 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         trackEvent('purchase');
+        markConverted();
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
@@ -334,6 +363,7 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         trackEvent('purchase');
+        markConverted();
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
@@ -372,6 +402,7 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         trackEvent('purchase');
+        markConverted();
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
@@ -409,6 +440,7 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         trackEvent('purchase');
+        markConverted();
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
@@ -446,6 +478,7 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         trackEvent('purchase');
+        markConverted();
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
@@ -485,6 +518,7 @@ export default function Checkout() {
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
         trackEvent('purchase');
+        markConverted();
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
@@ -571,6 +605,7 @@ export default function Checkout() {
     if (currentStep === 1 && isStep1Valid) {
       setShowFieldErrors(false);
       setCurrentStep(2);
+      trackAbandoned(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === 1) {
       scrollToFirstError();
@@ -582,6 +617,7 @@ export default function Checkout() {
       if (stepValid) {
         setShowFieldErrors(false);
         setCurrentStep(3);
+        trackAbandoned(3);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         scrollToFirstError();

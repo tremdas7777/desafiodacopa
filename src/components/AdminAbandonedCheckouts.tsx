@@ -2,89 +2,73 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Loader2, ShoppingCart, Phone, Mail, Copy, CheckCircle, MapPin, Clock, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Loader2, ShoppingCart, Phone, Mail, Copy, CheckCircle, Clock, AlertTriangle, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface AbandonedOrder {
+interface AbandonedCheckout {
   id: string;
+  session_id: string;
+  last_step: string;
   buyer_name: string | null;
-  buyer_document: string | null;
-  buyer_phone: string | null;
   buyer_email: string | null;
-  amount_cents: number;
-  status: string;
-  created_at: string;
-  buyer_address: string | null;
-  buyer_address_number: string | null;
-  buyer_neighborhood: string | null;
+  buyer_phone: string | null;
+  buyer_document: string | null;
   buyer_city: string | null;
   buyer_state: string | null;
-  buyer_cep: string | null;
-  buyer_ip_city: string | null;
-  buyer_ip: string | null;
-  shipping_method: string | null;
+  converted: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 type TimeFilter = 'today' | '24h' | '3d' | '7d' | '30d' | 'all';
 
 export default function AdminAbandonedCheckouts() {
-  const [orders, setOrders] = useState<AbandonedOrder[]>([]);
+  const [data, setData] = useState<AbandonedCheckout[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('7d');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const fetchAbandoned = async () => {
+  const fetchData = async () => {
     setLoading(true);
     let query = supabase
-      .from('orders')
-      .select('id, buyer_name, buyer_document, buyer_phone, buyer_email, amount_cents, status, created_at, buyer_address, buyer_address_number, buyer_neighborhood, buyer_city, buyer_state, buyer_cep, buyer_ip_city, buyer_ip, shipping_method')
-      .in('status', ['pending', 'expired', 'waiting_payment'])
-      .order('created_at', { ascending: false })
+      .from('abandoned_checkouts')
+      .select('*')
+      .eq('converted', false)
+      .order('updated_at', { ascending: false })
       .limit(200);
 
     if (timeFilter !== 'all') {
       const now = new Date();
+      const cutoffs: Record<string, number> = { today: 0, '24h': 24, '3d': 72, '7d': 168, '30d': 720 };
       let cutoff: Date;
-      switch (timeFilter) {
-        case 'today':
-          cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          break;
-        case '24h':
-          cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-          break;
-        case '3d':
-          cutoff = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-          break;
-        case '7d':
-          cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case '30d':
-          cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          break;
-        default:
-          cutoff = new Date(0);
+      if (timeFilter === 'today') {
+        cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else {
+        cutoff = new Date(now.getTime() - (cutoffs[timeFilter] || 168) * 60 * 60 * 1000);
       }
       query = query.gte('created_at', cutoff.toISOString());
     }
 
-    const { data } = await query;
-    setOrders((data as AbandonedOrder[]) || []);
+    const { data: rows } = await query;
+    setData((rows as AbandonedCheckout[]) || []);
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchAbandoned();
-  }, [timeFilter]);
+  useEffect(() => { fetchData(); }, [timeFilter]);
 
   const stats = useMemo(() => {
-    const withPhone = orders.filter(o => o.buyer_phone).length;
-    const withEmail = orders.filter(o => o.buyer_email).length;
-    const totalValue = orders.reduce((sum, o) => sum + o.amount_cents, 0);
-    const pending = orders.filter(o => o.status === 'pending').length;
-    const expired = orders.filter(o => o.status === 'expired').length;
-    return { total: orders.length, withPhone, withEmail, totalValue, pending, expired };
-  }, [orders]);
+    const byStep: Record<string, number> = {};
+    data.forEach(d => { byStep[d.last_step] = (byStep[d.last_step] || 0) + 1; });
+    return {
+      total: data.length,
+      identificacao: byStep['identificação'] || 0,
+      endereco: byStep['endereço'] || 0,
+      pagamento: byStep['pagamento'] || 0,
+      withPhone: data.filter(d => d.buyer_phone).length,
+      withEmail: data.filter(d => d.buyer_email).length,
+    };
+  }, [data]);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -94,14 +78,14 @@ export default function AdminAbandonedCheckouts() {
   };
 
   const copyAllPhones = () => {
-    const phones = orders.filter(o => o.buyer_phone).map(o => o.buyer_phone!);
+    const phones = data.filter(d => d.buyer_phone).map(d => d.buyer_phone!);
     if (phones.length === 0) return toast.error('Nenhum telefone encontrado');
     navigator.clipboard.writeText(phones.join('\n'));
     toast.success(`${phones.length} telefones copiados!`);
   };
 
   const copyAllEmails = () => {
-    const emails = orders.filter(o => o.buyer_email).map(o => o.buyer_email!);
+    const emails = data.filter(d => d.buyer_email).map(d => d.buyer_email!);
     if (emails.length === 0) return toast.error('Nenhum email encontrado');
     navigator.clipboard.writeText(emails.join('\n'));
     toast.success(`${emails.length} emails copiados!`);
@@ -113,8 +97,16 @@ export default function AdminAbandonedCheckouts() {
     if (mins < 60) return `${mins}min atrás`;
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours}h atrás`;
-    const days = Math.floor(hours / 24);
-    return `${days}d atrás`;
+    return `${Math.floor(hours / 24)}d atrás`;
+  };
+
+  const stepBadge = (step: string) => {
+    const colors: Record<string, string> = {
+      'identificação': 'text-primary border-primary/30',
+      'endereço': 'text-centauro-gold border-centauro-gold/30',
+      'pagamento': 'text-destructive border-destructive/30',
+    };
+    return colors[step] || 'text-muted-foreground';
   };
 
   const timeFilters: { id: TimeFilter; label: string }[] = [
@@ -134,29 +126,22 @@ export default function AdminAbandonedCheckouts() {
             <AlertTriangle size={20} className="text-centauro-gold" />
             Checkouts Abandonados
           </h2>
-          <p className="text-muted-foreground text-xs">PIX gerado mas não pago — oportunidades de remarketing</p>
+          <p className="text-muted-foreground text-xs">Usuários que entraram no checkout mas NÃO geraram PIX</p>
         </div>
-        <Button onClick={fetchAbandoned} variant="outline" size="sm" className="text-xs" disabled={loading}>
+        <Button onClick={fetchData} variant="outline" size="sm" className="text-xs" disabled={loading}>
           {loading ? <Loader2 size={14} className="mr-1 animate-spin" /> : <RefreshCw size={14} className="mr-1" />}
           Atualizar
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      {/* Stats with step breakdown */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
         <Card className="p-3 border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-1">
             <ShoppingCart size={14} className="text-centauro-gold" />
-            <span className="text-[10px] font-bold text-muted-foreground uppercase">Abandonados</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Total Abandonados</span>
           </div>
           <p className="text-lg font-black text-foreground">{stats.total}</p>
-        </Card>
-        <Card className="p-3 border border-border shadow-sm">
-          <div className="flex items-center gap-2 mb-1">
-            <Clock size={14} className="text-orange-500" />
-            <span className="text-[10px] font-bold text-muted-foreground uppercase">Pendentes</span>
-          </div>
-          <p className="text-lg font-black text-foreground">{stats.pending}</p>
         </Card>
         <Card className="p-3 border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-1">
@@ -167,12 +152,46 @@ export default function AdminAbandonedCheckouts() {
         </Card>
         <Card className="p-3 border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-1">
-            <AlertTriangle size={14} className="text-destructive" />
-            <span className="text-[10px] font-bold text-muted-foreground uppercase">Valor Perdido</span>
+            <Mail size={14} className="text-primary" />
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Com Email</span>
           </div>
-          <p className="text-lg font-black text-foreground">R$ {(stats.totalValue / 100).toFixed(2).replace('.', ',')}</p>
+          <p className="text-lg font-black text-foreground">{stats.withEmail}</p>
         </Card>
       </div>
+
+      {/* Step breakdown bar */}
+      <Card className="p-3 border border-border shadow-sm mb-4">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">Onde abandonaram</p>
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-primary">Etapa 1 — Identificação</span>
+              <span className="text-xs font-black text-foreground">{stats.identificacao}</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${stats.total > 0 ? (stats.identificacao / stats.total) * 100 : 0}%` }} />
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-centauro-gold">Etapa 2 — Endereço</span>
+              <span className="text-xs font-black text-foreground">{stats.endereco}</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-full bg-centauro-gold rounded-full transition-all" style={{ width: `${stats.total > 0 ? (stats.endereco / stats.total) * 100 : 0}%` }} />
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-destructive">Etapa 3 — Pagamento</span>
+              <span className="text-xs font-black text-foreground">{stats.pagamento}</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-full bg-destructive rounded-full transition-all" style={{ width: `${stats.total > 0 ? (stats.pagamento / stats.total) * 100 : 0}%` }} />
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Time filter + bulk actions */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -206,73 +225,68 @@ export default function AdminAbandonedCheckouts() {
         <div className="flex items-center justify-center py-20">
           <Loader2 size={32} className="animate-spin text-muted-foreground" />
         </div>
-      ) : orders.length === 0 ? (
+      ) : data.length === 0 ? (
         <Card className="p-6 border border-border shadow-sm text-center">
           <ShoppingCart size={32} className="mx-auto text-muted-foreground mb-2" />
           <p className="text-muted-foreground text-sm font-bold">Nenhum checkout abandonado</p>
-          <p className="text-muted-foreground text-xs">Boas notícias! Todos pagaram 🎉</p>
+          <p className="text-muted-foreground text-xs">Todos finalizaram! 🎉</p>
         </Card>
       ) : (
         <div className="space-y-2">
-          {orders.map(order => (
-            <Card key={order.id} className="p-3 border border-border shadow-sm">
+          {data.map(item => (
+            <Card key={item.id} className="p-3 border border-border shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-foreground truncate">
-                      {order.buyer_name || 'Sem nome'}
+                      {item.buyer_name || 'Visitante anônimo'}
                     </p>
                     <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <Clock size={10} /> {getTimeSince(order.created_at)}
+                      <Clock size={10} /> {getTimeSince(item.updated_at)}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {order.buyer_phone && (
+                    {item.buyer_phone && (
                       <button
-                        onClick={() => copyToClipboard(order.buyer_phone!, order.id + '-phone')}
+                        onClick={() => copyToClipboard(item.buyer_phone!, item.id + '-phone')}
                         className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        {copiedId === order.id + '-phone' ? <CheckCircle size={10} className="text-centauro-green" /> : <Phone size={10} />}
-                        {order.buyer_phone}
+                        {copiedId === item.id + '-phone' ? <CheckCircle size={10} className="text-centauro-green" /> : <Phone size={10} />}
+                        {item.buyer_phone}
                       </button>
                     )}
-                    {order.buyer_email && (
+                    {item.buyer_email && (
                       <button
-                        onClick={() => copyToClipboard(order.buyer_email!, order.id + '-email')}
+                        onClick={() => copyToClipboard(item.buyer_email!, item.id + '-email')}
                         className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        {copiedId === order.id + '-email' ? <CheckCircle size={10} className="text-centauro-green" /> : <Mail size={10} />}
-                        {order.buyer_email}
+                        {copiedId === item.id + '-email' ? <CheckCircle size={10} className="text-centauro-green" /> : <Mail size={10} />}
+                        {item.buyer_email}
                       </button>
                     )}
-                    {order.buyer_document && (
+                    {item.buyer_document && (
                       <button
-                        onClick={() => copyToClipboard(order.buyer_document!, order.id + '-cpf')}
+                        onClick={() => copyToClipboard(item.buyer_document!, item.id + '-cpf')}
                         className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        {copiedId === order.id + '-cpf' ? <CheckCircle size={10} className="text-centauro-green" /> : <Copy size={10} />}
-                        CPF: {order.buyer_document}
+                        {copiedId === item.id + '-cpf' ? <CheckCircle size={10} className="text-centauro-green" /> : <Copy size={10} />}
+                        CPF: {item.buyer_document}
                       </button>
                     )}
                   </div>
-                  {order.buyer_ip_city && (
-                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                      🌐 {order.buyer_ip_city}
-                    </p>
-                  )}
-                  {(order.buyer_city || order.buyer_state) && (
+                  {(item.buyer_city || item.buyer_state) && (
                     <div className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground">
                       <MapPin size={10} />
-                      {[order.buyer_neighborhood, order.buyer_city && order.buyer_state ? `${order.buyer_city}/${order.buyer_state}` : (order.buyer_city || order.buyer_state)].filter(Boolean).join(' • ')}
+                      {[item.buyer_city, item.buyer_state].filter(Boolean).join('/')}
                     </div>
                   )}
                   <p className="text-[10px] text-muted-foreground mt-1">
-                    {new Date(order.created_at).toLocaleString('pt-BR')} • R$ {(order.amount_cents / 100).toFixed(2).replace('.', ',')}
+                    {new Date(item.created_at).toLocaleString('pt-BR')}
                   </p>
                 </div>
                 <div className="ml-3">
-                  <Badge variant="outline" className={`text-[9px] ${order.status === 'pending' ? 'text-centauro-gold border-centauro-gold/30' : 'text-destructive border-destructive/30'}`}>
-                    {order.status === 'pending' ? 'Pendente' : order.status === 'expired' ? 'Expirado' : order.status}
+                  <Badge variant="outline" className={`text-[9px] ${stepBadge(item.last_step)}`}>
+                    {item.last_step}
                   </Badge>
                 </div>
               </div>
