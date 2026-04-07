@@ -16,6 +16,7 @@ interface AbandonedCheckout {
   buyer_document: string | null;
   buyer_city: string | null;
   buyer_state: string | null;
+  pix_error: string | null;
   converted: boolean;
   created_at: string;
   updated_at: string;
@@ -60,6 +61,7 @@ export default function AdminAbandonedCheckouts() {
   const stats = useMemo(() => {
     const byStep: Record<string, number> = {};
     data.forEach(d => { byStep[d.last_step] = (byStep[d.last_step] || 0) + 1; });
+    const withPixError = data.filter(d => d.pix_error).length;
     return {
       total: data.length,
       identificacao: byStep['identificação'] || 0,
@@ -67,6 +69,7 @@ export default function AdminAbandonedCheckouts() {
       pagamento: byStep['pagamento'] || 0,
       withPhone: data.filter(d => d.buyer_phone).length,
       withEmail: data.filter(d => d.buyer_email).length,
+      withPixError,
     };
   }, [data]);
 
@@ -135,7 +138,7 @@ export default function AdminAbandonedCheckouts() {
       </div>
 
       {/* Stats with step breakdown */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <Card className="p-3 border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-1">
             <ShoppingCart size={14} className="text-centauro-gold" />
@@ -156,6 +159,13 @@ export default function AdminAbandonedCheckouts() {
             <span className="text-[10px] font-bold text-muted-foreground uppercase">Com Email</span>
           </div>
           <p className="text-lg font-black text-foreground">{stats.withEmail}</p>
+        </Card>
+        <Card className="p-3 border border-border shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <AlertTriangle size={14} className="text-destructive" />
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Erro no PIX</span>
+          </div>
+          <p className="text-lg font-black text-foreground">{stats.withPixError}</p>
         </Card>
       </div>
 
@@ -279,6 +289,11 @@ export default function AdminAbandonedCheckouts() {
                       <MapPin size={10} />
                       {[item.buyer_city, item.buyer_state].filter(Boolean).join('/')}
                     </div>
+                  )}
+                  {item.pix_error && (
+                    <p className="text-[10px] text-destructive font-bold mt-0.5">
+                      ⚠️ {item.pix_error}
+                    </p>
                   )}
                   <p className="text-[10px] text-muted-foreground mt-1">
                     {new Date(item.created_at).toLocaleString('pt-BR')}

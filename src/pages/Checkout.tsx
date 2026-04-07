@@ -81,7 +81,7 @@ export default function Checkout() {
 
   // Abandoned checkout tracking
   const stepLabels = ['identificação', 'endereço', 'pagamento'];
-  const trackAbandoned = async (step: number) => {
+  const trackAbandoned = async (step: number, pixError?: string) => {
     try {
       const sessionId = sessionStorage.getItem('funnel_session_id') || crypto.randomUUID();
       await supabase.from('abandoned_checkouts').upsert({
@@ -93,6 +93,7 @@ export default function Checkout() {
         buyer_document: cpf ? cpf.replace(/\D/g, '') : null,
         buyer_city: cidade || null,
         buyer_state: estado || null,
+        pix_error: pixError || null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'session_id' });
     } catch {}
@@ -331,6 +332,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -370,6 +372,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -409,6 +412,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -446,6 +450,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -484,6 +489,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
@@ -524,6 +530,7 @@ export default function Checkout() {
       } catch (err: any) {
         console.error('PIX error:', err);
         setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
         setTimeout(() => setPixError(''), 5000);
       } finally {
         setPixLoading(false);
