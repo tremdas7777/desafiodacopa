@@ -61,6 +61,7 @@ export default function AdminAbandonedCheckouts() {
   const stats = useMemo(() => {
     const byStep: Record<string, number> = {};
     data.forEach(d => { byStep[d.last_step] = (byStep[d.last_step] || 0) + 1; });
+    const withPixError = data.filter(d => d.pix_error).length;
     return {
       total: data.length,
       identificacao: byStep['identificação'] || 0,
@@ -68,6 +69,7 @@ export default function AdminAbandonedCheckouts() {
       pagamento: byStep['pagamento'] || 0,
       withPhone: data.filter(d => d.buyer_phone).length,
       withEmail: data.filter(d => d.buyer_email).length,
+      withPixError,
     };
   }, [data]);
 
