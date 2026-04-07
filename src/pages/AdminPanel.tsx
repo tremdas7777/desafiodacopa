@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, TrendingUp, Users, CheckCircle, ArrowDown, Trash2, Code, Webhook, Bell, Zap, Loader2, ExternalLink, CreditCard, QrCode, Copy, RefreshCw, Plus, DollarSign, Shield, Gift, Star } from 'lucide-react';
+import { Eye, EyeOff, LogOut, Save, Link2, Info, BarChart3, ShoppingCart, TrendingUp, Users, CheckCircle, ArrowDown, Trash2, Code, Webhook, Bell, Zap, Loader2, ExternalLink, CreditCard, QrCode, Copy, RefreshCw, Plus, DollarSign, Shield, Gift, Star, AlertTriangle } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { getFunnelStats, clearFunnelEvents } from '@/lib/funnelTracking';
@@ -15,10 +15,11 @@ import { fetchPaymentGatewayConfig, savePaymentGatewayConfig, type PaymentGatewa
 import { supabase } from '@/integrations/supabase/client';
 import AdminFinanceiro from '@/components/AdminFinanceiro';
 import AdminLeads from '@/components/AdminLeads';
+import AdminAbandonedCheckouts from '@/components/AdminAbandonedCheckouts';
 
 const ADMIN_EMAIL = atob('YWRtaW5AY2VudGF1cm8uY29t');
 
-type Tab = 'analytics' | 'financeiro' | 'leads' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
+type Tab = 'analytics' | 'financeiro' | 'leads' | 'abandonados' | 'pixels' | 'webhooks' | 'utmify' | 'checkout' | 'pagamentos' | 'pedidos' | 'cloaker';
 
 export default function AdminPanel() {
   const [email] = useState(ADMIN_EMAIL);
@@ -375,6 +376,7 @@ export default function AdminPanel() {
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
     { id: 'financeiro', label: 'Financeiro', icon: <DollarSign size={14} /> },
     { id: 'leads', label: 'Leads', icon: <Users size={14} /> },
+    { id: 'abandonados', label: 'Abandonados', icon: <AlertTriangle size={14} /> },
     { id: 'cloaker', label: 'Cloaker', icon: <Shield size={14} /> },
     { id: 'pixels', label: 'Pixels', icon: <Code size={14} /> },
     { id: 'webhooks', label: 'Webhooks', icon: <Bell size={14} /> },
@@ -533,6 +535,9 @@ export default function AdminPanel() {
 
         {/* LEADS TAB */}
         {activeTab === 'leads' && <AdminLeads />}
+
+        {/* ABANDONED CHECKOUTS TAB */}
+        {activeTab === 'abandonados' && <AdminAbandonedCheckouts />}
 
         {/* PIXELS TAB */}
         {activeTab === 'pixels' && (
