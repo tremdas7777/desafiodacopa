@@ -71,14 +71,6 @@ serve(async (req) => {
         phone: buyerPhone ? buyerPhone.replace(/\D/g, '') : '11999999999',
         document: buyerDocument ? buyerDocument.replace(/\D/g, '') : '00000000000',
       },
-      products: [
-        {
-          id: identifier,
-          name: 'Panela Antiaderente 12L',
-          quantity: 1,
-          price: amount,
-        },
-      ],
     };
 
     if (metadata) {
