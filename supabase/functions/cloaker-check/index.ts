@@ -133,31 +133,15 @@ const buildResponsePayload = ({
   isBot,
   reason,
   confidence,
-  detectedCity,
-  detectedRegion,
-  detectedCountry,
-  detectedGeoProvider,
 }: {
   isBot: boolean;
   reason: string;
   confidence: number;
-  detectedCity: string;
-  detectedRegion: string;
-  detectedCountry: string;
-  detectedGeoProvider: string;
 }) => ({
   isBot,
   reason: isBot ? reason : 'real_user',
   confidence,
   timestamp: new Date().toISOString(),
-  geo: detectedCity || detectedRegion || detectedCountry
-    ? {
-        city: detectedCity || null,
-        region: detectedRegion || null,
-        country: detectedCountry || null,
-        provider: detectedGeoProvider || null,
-      }
-    : null,
 });
 
 Deno.serve(async (req) => {
