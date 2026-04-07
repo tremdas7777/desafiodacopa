@@ -61,6 +61,7 @@ export default function AdminPanel() {
     ironpay: { apiToken: '', enabled: false },
     simpayout: { clientId: '', clientSecret: '', enabled: false },
     payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
+    mppagamentos: { publicKey: '', secretKey: '', enabled: false },
   });
   const [gatewayMessage, setGatewayMessage] = useState('');
   const [gatewayTesting, setGatewayTesting] = useState(false);
@@ -76,6 +77,7 @@ export default function AdminPanel() {
         'Iron Pay': { apiToken: gatewayConfig.ironpay.apiToken },
         'Sim Payout': { clientId: gatewayConfig.simpayout.clientId, clientSecret: gatewayConfig.simpayout.clientSecret },
         'PayEvo': { secretKey: gatewayConfig.payevo.secretKey, companyId: gatewayConfig.payevo.companyId, receiverId: gatewayConfig.payevo.receiverId, apiKey: gatewayConfig.payevo.apiKey },
+        'MP Pagamentos': { publicKey: gatewayConfig.mppagamentos.publicKey, secretKey: gatewayConfig.mppagamentos.secretKey },
       };
       const fnMap: Record<string, string> = {
         'Pagou.ai': 'criar-pix',
@@ -84,6 +86,7 @@ export default function AdminPanel() {
         'Iron Pay': 'criar-pix-ironpay',
         'Sim Payout': 'criar-pix-simpayout',
         'PayEvo': 'criar-pix-payevo',
+        'MP Pagamentos': 'criar-pix-mppagamentos',
       };
       const { data, error } = await supabase.functions.invoke(fnMap[gatewayName], {
         body: {
@@ -966,14 +969,14 @@ export default function AdminPanel() {
                 <span className="font-black text-foreground text-sm">Gateway Ativo</span>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {(['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'] as const).map((gw) => (
+                {(['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo', 'mppagamentos'] as const).map((gw) => (
                   <button
                     key={gw}
                     onClick={async () => {
                       const updated = { ...gatewayConfig, activeGateway: gw };
                       setGatewayConfig(updated);
                       await savePaymentGatewayConfig(updated);
-                      const names: Record<string, string> = { pagouai: 'Pagou.ai', vennox: 'Vennox', centurionpay: 'Centurion Pay', ironpay: 'Iron Pay', simpayout: 'Sim Payout', payevo: 'PayEvo' };
+                      const names: Record<string, string> = { pagouai: 'Pagou.ai', vennox: 'Vennox', centurionpay: 'Centurion Pay', ironpay: 'Iron Pay', simpayout: 'Sim Payout', payevo: 'PayEvo', mppagamentos: 'MP Pagamentos' };
                       setGatewayMessage(`Gateway ativo: ${names[gw]}`);
                       setTimeout(() => setGatewayMessage(''), 3000);
                     }}
@@ -983,7 +986,7 @@ export default function AdminPanel() {
                         : 'border-border text-muted-foreground hover:border-muted-foreground/30'
                     }`}
                   >
-                    {gw === 'pagouai' ? 'Pagou.ai' : gw === 'vennox' ? 'Vennox' : gw === 'centurionpay' ? 'Centurion Pay' : gw === 'ironpay' ? 'Iron Pay' : gw === 'simpayout' ? 'Sim Payout' : 'PayEvo'}
+                    {gw === 'pagouai' ? 'Pagou.ai' : gw === 'vennox' ? 'Vennox' : gw === 'centurionpay' ? 'Centurion Pay' : gw === 'ironpay' ? 'Iron Pay' : gw === 'simpayout' ? 'Sim Payout' : gw === 'payevo' ? 'PayEvo' : 'MP Pagamentos'}
                   </button>
                 ))}
               </div>
@@ -1363,6 +1366,66 @@ export default function AdminPanel() {
               </div>
             </Card>
 
+            {/* MP Pagamentos Config */}
+            <Card className="p-5 border border-border mt-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-centauro-green/10 flex items-center justify-center">
+                  <CreditCard size={20} className="text-centauro-green" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-black text-foreground text-sm">MP Pagamentos</h3>
+                  <p className="text-muted-foreground text-[11px]">PagamentosMP - Gateway PIX</p>
+                </div>
+                {gatewayConfig.activeGateway === 'mppagamentos' && (
+                  <Badge className="bg-centauro-green/10 text-centauro-green border-centauro-green/30 text-[10px]">Ativo</Badge>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Chave Pública (x-public-key)</label>
+                  <Input
+                    type="text"
+                    value={gatewayConfig.mppagamentos.publicKey}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      mppagamentos: { ...prev.mppagamentos, publicKey: e.target.value }
+                    }))}
+                    placeholder="sua_chave_publica_aqui"
+                    className="font-mono text-xs mt-1"
+                  />
+                  <p className="text-[9px] text-muted-foreground mt-1">PagamentosMP → Integrações → API → Chave Pública</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Chave Secreta (x-secret-key)</label>
+                  <Input
+                    type="password"
+                    value={gatewayConfig.mppagamentos.secretKey}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      mppagamentos: { ...prev.mppagamentos, secretKey: e.target.value }
+                    }))}
+                    placeholder="sua_chave_secreta_aqui"
+                    className="font-mono text-xs mt-1"
+                  />
+                </div>
+
+                <Button
+                  onClick={async () => {
+                    await savePaymentGatewayConfig(gatewayConfig);
+                    setGatewayMessage('Configuração da MP Pagamentos salva com sucesso!');
+                    setTimeout(() => setGatewayMessage(''), 3000);
+                  }}
+                  className="w-full bg-centauro-green hover:bg-centauro-green/90 text-primary-foreground font-bold text-xs"
+                >
+                  <Save size={14} className="mr-1.5" /> Salvar MP Pagamentos
+                </Button>
+                <Button variant="outline" disabled={gatewayTesting} onClick={() => testGateway('MP Pagamentos')} className="w-full border-centauro-green/30 text-centauro-green hover:bg-centauro-green/10 font-bold text-xs">
+                  <Zap size={14} className="mr-1.5" /> Testar MP Pagamentos (R$ 44,90)
+                </Button>
+              </div>
+            </Card>
+
             <div className="bg-centauro-gold/10 p-3.5 rounded-md border border-centauro-gold/20 mt-4">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Info size={13} className="text-centauro-gold" />
@@ -1378,6 +1441,7 @@ export default function AdminPanel() {
                 <li><strong>Iron Pay:</strong> Token da API Pública (api_token)</li>
                 <li><strong>Sim Payout:</strong> Client ID (chave pública) + Client Secret (chave secreta)</li>
                 <li><strong>PayEvo:</strong> Secret Key + Company ID + Receiver ID + API Key (autenticação Basic)</li>
+                <li><strong>MP Pagamentos:</strong> Chave Pública + Chave Secreta (x-public-key / x-secret-key)</li>
               </ul>
             </div>
           </div>

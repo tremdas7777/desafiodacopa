@@ -37,14 +37,21 @@ export interface PayEvoConfig {
   enabled: boolean;
 }
 
+export interface MpPagamentosConfig {
+  publicKey: string;
+  secretKey: string;
+  enabled: boolean;
+}
+
 export interface PaymentGatewayConfig {
-  activeGateway: 'pagouai' | 'vennox' | 'centurionpay' | 'ironpay' | 'simpayout' | 'payevo';
+  activeGateway: 'pagouai' | 'vennox' | 'centurionpay' | 'ironpay' | 'simpayout' | 'payevo' | 'mppagamentos';
   pagouai: PagouAiConfig;
   vennox: VennoxConfig;
   centurionpay: CenturionPayConfig;
   ironpay: IronPayConfig;
   simpayout: SimPayoutConfig;
   payevo: PayEvoConfig;
+  mppagamentos: MpPagamentosConfig;
 }
 
 const defaultConfig: PaymentGatewayConfig = {
@@ -55,6 +62,7 @@ const defaultConfig: PaymentGatewayConfig = {
   ironpay: { apiToken: '', enabled: false },
   simpayout: { clientId: '', clientSecret: '', enabled: false },
   payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
+  mppagamentos: { publicKey: '', secretKey: '', enabled: false },
 };
 
 // In-memory cache to avoid repeated DB calls within the same page
@@ -78,7 +86,7 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
     }
 
     const config: PaymentGatewayConfig = {
-      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'].includes(data.active_gateway)
+      activeGateway: (['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo', 'mppagamentos'].includes(data.active_gateway)
         ? data.active_gateway
         : 'centurionpay') as PaymentGatewayConfig['activeGateway'],
       pagouai: {
@@ -111,6 +119,11 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
         receiverId: (data as any).payevo_receiver_id || '',
         apiKey: (data as any).payevo_api_key || '',
         enabled: !!((data as any).payevo_secret_key),
+      },
+      mppagamentos: {
+        publicKey: (data as any).mppagamentos_public_key || '',
+        secretKey: (data as any).mppagamentos_secret_key || '',
+        enabled: !!((data as any).mppagamentos_public_key && (data as any).mppagamentos_secret_key),
       },
     };
 
@@ -146,6 +159,8 @@ export async function savePaymentGatewayConfig(config: PaymentGatewayConfig): Pr
       payevo_company_id: config.payevo.companyId,
       payevo_receiver_id: config.payevo.receiverId,
       payevo_api_key: config.payevo.apiKey,
+      mppagamentos_public_key: config.mppagamentos.publicKey,
+      mppagamentos_secret_key: config.mppagamentos.secretKey,
       updated_at: new Date().toISOString(),
     };
 

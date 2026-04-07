@@ -220,6 +220,8 @@ function extractExternalId(body: any): string | null {
   const id = String(
     body.data?.id ||
     body.data?.transaction_id ||
+    body.transaction?.id ||
+    body.transaction?.identifier ||
     body.transaction_id ||
     body.transaction_hash ||
     body.tid ||
@@ -235,6 +237,7 @@ function extractStatus(body: any): string {
   const candidates = [
     { field: 'current_status', value: body.current_status },
     { field: 'transaction_status', value: body.transaction_status },
+    { field: 'transaction.status', value: body.transaction?.status },
     { field: 'data.status', value: body.data?.status },
     { field: 'object.status', value: body.object?.status },
     { field: 'status', value: body.status },

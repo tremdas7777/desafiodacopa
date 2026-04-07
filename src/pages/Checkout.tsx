@@ -274,9 +274,10 @@ export default function Checkout() {
     const hasIronPayKeys = !!gatewayConfig.ironpay?.apiToken?.trim();
     const hasSimPayoutKeys = !!gatewayConfig.simpayout?.clientId?.trim() && !!gatewayConfig.simpayout?.clientSecret?.trim();
     const hasPayEvoKeys = !!gatewayConfig.payevo?.secretKey?.trim();
+    const hasMpPagamentosKeys = !!gatewayConfig.mppagamentos?.publicKey?.trim() && !!gatewayConfig.mppagamentos?.secretKey?.trim();
 
-    const allGateways = ['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo'] as const;
-    const hasKeys: Record<string, boolean> = { pagouai: hasPagouaiKeys, vennox: hasVennoxKeys, centurionpay: hasCenturionPayKeys, ironpay: hasIronPayKeys, simpayout: hasSimPayoutKeys, payevo: hasPayEvoKeys };
+    const allGateways = ['pagouai', 'vennox', 'centurionpay', 'ironpay', 'simpayout', 'payevo', 'mppagamentos'] as const;
+    const hasKeys: Record<string, boolean> = { pagouai: hasPagouaiKeys, vennox: hasVennoxKeys, centurionpay: hasCenturionPayKeys, ironpay: hasIronPayKeys, simpayout: hasSimPayoutKeys, payevo: hasPayEvoKeys, mppagamentos: hasMpPagamentosKeys };
 
     // If active gateway isn't configured, fall back to one that is
     if (!hasKeys[activeGateway]) {
@@ -513,6 +514,45 @@ export default function Checkout() {
             companyId: gatewayConfig.payevo.companyId,
             receiverId: gatewayConfig.payevo.receiverId,
             apiKey: gatewayConfig.payevo.apiKey,
+            amount: shippingCost || 44.90,
+            buyerName: nome,
+            buyerEmail: email,
+            buyerDocument: cpf,
+            buyerPhone: telefone,
+            metadata: purchaseMetadata,
+          },
+        });
+
+        if (error) throw error;
+
+        setPixCode(data.pix_code || '');
+        setPixQrCodeBase64(data.pix_qr_code_base64 || '');
+        setPixOrderId(data.order_id || '');
+        trackEvent('purchase');
+        markConverted();
+        setShowPixPopup(true);
+        sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
+      } catch (err: any) {
+        console.error('PIX error:', err);
+        setPixError('Erro ao gerar PIX. Tente novamente.');
+        trackAbandoned(3, 'Erro ao gerar PIX');
+        setTimeout(() => setPixError(''), 5000);
+      } finally {
+        setPixLoading(false);
+      }
+    } else if (activeGateway === 'mppagamentos') {
+      if (!hasMpPagamentosKeys) {
+        setPixError('Gateway MP Pagamentos não configurado. Configure as chaves no painel admin.');
+        setTimeout(() => setPixError(''), 5000);
+        return;
+      }
+      setPixLoading(true);
+      setPixError('');
+      try {
+        const { data, error } = await supabase.functions.invoke('criar-pix-mppagamentos', {
+          body: {
+            publicKey: gatewayConfig.mppagamentos.publicKey,
+            secretKey: gatewayConfig.mppagamentos.secretKey,
             amount: shippingCost || 44.90,
             buyerName: nome,
             buyerEmail: email,
