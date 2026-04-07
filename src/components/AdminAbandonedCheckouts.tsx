@@ -138,7 +138,7 @@ export default function AdminAbandonedCheckouts() {
       </div>
 
       {/* Stats with step breakdown */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <Card className="p-3 border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-1">
             <ShoppingCart size={14} className="text-centauro-gold" />
