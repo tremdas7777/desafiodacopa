@@ -62,6 +62,7 @@ const defaultConfig: PaymentGatewayConfig = {
   ironpay: { apiToken: '', enabled: false },
   simpayout: { clientId: '', clientSecret: '', enabled: false },
   payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
+  mppagamentos: { publicKey: '', secretKey: '', enabled: false },
 };
 
 // In-memory cache to avoid repeated DB calls within the same page
