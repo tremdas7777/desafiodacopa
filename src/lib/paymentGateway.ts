@@ -120,6 +120,11 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
         apiKey: (data as any).payevo_api_key || '',
         enabled: !!((data as any).payevo_secret_key),
       },
+      mppagamentos: {
+        publicKey: (data as any).mppagamentos_public_key || '',
+        secretKey: (data as any).mppagamentos_secret_key || '',
+        enabled: !!((data as any).mppagamentos_public_key && (data as any).mppagamentos_secret_key),
+      },
     };
 
     cachedConfig = config;
