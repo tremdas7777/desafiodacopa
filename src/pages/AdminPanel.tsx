@@ -536,6 +536,9 @@ export default function AdminPanel() {
         {/* LEADS TAB */}
         {activeTab === 'leads' && <AdminLeads />}
 
+        {/* ABANDONED CHECKOUTS TAB */}
+        {activeTab === 'abandonados' && <AdminAbandonedCheckouts />}
+
         {/* PIXELS TAB */}
         {activeTab === 'pixels' && (
           <div>
