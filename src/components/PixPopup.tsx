@@ -193,7 +193,7 @@ export default function PixPopup({ open, onOpenChange, pixCode, pixQrCodeBase64,
                 </div>
                 <div className="flex flex-col items-center gap-1 rounded-lg p-2 border border-border/50 bg-secondary/50">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black bg-muted-foreground/20 text-muted-foreground">3</div>
-                  <ClipboardPaste size={14} className="text-muted-foreground" />
+                  <ClipboardCheck size={14} className="text-muted-foreground" />
                   <span className="text-[9px] font-semibold text-muted-foreground text-center leading-tight">Cole no PIX</span>
                 </div>
               </div>
