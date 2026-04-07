@@ -158,7 +158,7 @@ export async function savePaymentGatewayConfig(config: PaymentGatewayConfig): Pr
     } else {
       const { error } = await supabase
         .from('gateway_config')
-        .insert(updateData);
+        .insert([updateData]);
       if (error) throw error;
     }
 
