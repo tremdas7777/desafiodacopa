@@ -230,9 +230,7 @@ export default function Checkout() {
       return;
     }
 
-    trackEvent('purchase');
-    // Purchase conversion is fired ONLY when payment is confirmed (in PixPopup or server-side webhook)
-    // Never fire Purchase here - the user hasn't paid yet
+    // Purchase event is tracked AFTER successful PIX creation (not here)
 
     const gatewayConfig = await fetchPaymentGatewayConfig();
     let activeGateway = gatewayConfig.activeGateway;
@@ -297,6 +295,7 @@ export default function Checkout() {
         setPixCode(data.pix_code || '');
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
+        trackEvent('purchase');
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
@@ -334,6 +333,7 @@ export default function Checkout() {
         setPixCode(data.pix_code || '');
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
+        trackEvent('purchase');
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
@@ -371,6 +371,7 @@ export default function Checkout() {
         setPixCode(data.pix_code || '');
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
+        trackEvent('purchase');
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
         // Webhook venda_pendente is now fired server-side in the edge function
@@ -407,6 +408,7 @@ export default function Checkout() {
         setPixCode(data.pix_code || '');
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
+        trackEvent('purchase');
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
@@ -443,6 +445,7 @@ export default function Checkout() {
         setPixCode(data.pix_code || '');
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
+        trackEvent('purchase');
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
@@ -481,6 +484,7 @@ export default function Checkout() {
         setPixCode(data.pix_code || '');
         setPixQrCodeBase64(data.pix_qr_code_base64 || '');
         setPixOrderId(data.order_id || '');
+        trackEvent('purchase');
         setShowPixPopup(true);
         sendEmailPix(data.pix_code || '', shippingCost || 44.90, data.order_id || '');
       } catch (err: any) {
