@@ -160,6 +160,13 @@ export default function AdminAbandonedCheckouts() {
           </div>
           <p className="text-lg font-black text-foreground">{stats.withEmail}</p>
         </Card>
+        <Card className="p-3 border border-border shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <AlertTriangle size={14} className="text-destructive" />
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Erro no PIX</span>
+          </div>
+          <p className="text-lg font-black text-foreground">{stats.withPixError}</p>
+        </Card>
       </div>
 
       {/* Step breakdown bar */}
