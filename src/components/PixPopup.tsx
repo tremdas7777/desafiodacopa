@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, CheckCircle, QrCode, Loader2, Clock, AlertTriangle } from 'lucide-react';
+import { Copy, CheckCircle, QrCode, Loader2, Clock, AlertTriangle, Smartphone, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
