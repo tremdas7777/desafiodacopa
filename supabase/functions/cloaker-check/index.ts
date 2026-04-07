@@ -184,45 +184,6 @@ Deno.serve(async (req) => {
       }
     } catch { /* ignore */ }
 
-    const cityCheckOnly = fingerprint.cityCheckOnly === true;
-
-    // === LAYER 0: City Geolocation Block (always runs) ===
-    let detectedCity = '';
-    let detectedRegion = '';
-    let detectedCountry = '';
-    let detectedGeoProvider = '';
-    if (clientIp) {
-      const geo = await fetchGeoLookup(clientIp);
-      if (geo) {
-        detectedCity = geo.city;
-        detectedRegion = geo.region;
-        detectedCountry = geo.country;
-        detectedGeoProvider = geo.provider;
-
-        if (isBlockedCity(detectedCity)) {
-          isBot = true;
-          reason = `blocked_city:${detectedCity}`;
-          confidence = 99;
-        }
-      }
-    }
-
-    // If cityCheckOnly, skip all bot detection layers
-    if (cityCheckOnly || isBot) {
-      return new Response(
-        JSON.stringify(buildResponsePayload({
-          isBot,
-          reason,
-          confidence,
-          detectedCity,
-          detectedRegion,
-          detectedCountry,
-          detectedGeoProvider,
-        })),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-      );
-    }
-
     // === LAYER 1: User-Agent Analysis ===
 
     // Check for Google bot patterns (highest priority)
