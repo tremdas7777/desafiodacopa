@@ -179,6 +179,8 @@ export const useCloaker = () => {
             pluginCount: navigator.plugins?.length ?? 0,
             isTikTokWebView: /TikTok|BytedanceWebview|ByteLocale|musical_ly|aweme/i.test(navigator.userAgent) ||
               !!(window as any).__ttWebview || !!(window as any).TikTok || !!(window as any).ToutiaoJSBridge,
+            googleEnabled,
+            tiktokEnabled,
           },
         });
 
