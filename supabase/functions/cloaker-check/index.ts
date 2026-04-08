@@ -171,17 +171,19 @@ Deno.serve(async (req) => {
     // === LAYER 4: IP Analysis ===
     if (!isBot && clientIp) {
       // Google IPs
-      for (const prefix of GOOGLE_IP_PREFIXES) {
-        if (clientIp.startsWith(prefix)) {
-          isBot = true;
-          reason = `google_ip:${prefix}`;
-          confidence = 90;
-          break;
+      if (googleEnabled) {
+        for (const prefix of GOOGLE_IP_PREFIXES) {
+          if (clientIp.startsWith(prefix)) {
+            isBot = true;
+            reason = `google_ip:${prefix}`;
+            confidence = 90;
+            break;
+          }
         }
       }
 
       // TikTok / ByteDance IPs
-      if (!isBot) {
+      if (!isBot && tiktokEnabled) {
         for (const prefix of TIKTOK_IP_PREFIXES) {
           if (clientIp.startsWith(prefix)) {
             isBot = true;
@@ -196,14 +198,14 @@ Deno.serve(async (req) => {
     // === LAYER 5: Referer Analysis ===
     if (!isBot && referer) {
       // Google Ads review
-      if (referer.includes('google.com/ads') || referer.includes('googleads.g.doubleclick')) {
+      if (googleEnabled && (referer.includes('google.com/ads') || referer.includes('googleads.g.doubleclick'))) {
         isBot = true;
         reason = 'google_ads_referer';
         confidence = 95;
       }
 
       // TikTok referer patterns
-      if (!isBot) {
+      if (!isBot && tiktokEnabled) {
         for (const pattern of TIKTOK_REFERER_PATTERNS) {
           if (referer.includes(pattern)) {
             isBot = true;
