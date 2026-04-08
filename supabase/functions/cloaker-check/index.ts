@@ -129,18 +129,23 @@ Deno.serve(async (req) => {
       }
     } catch { /* ignore */ }
 
+    const googleEnabled = fingerprint.googleEnabled !== false;
+    const tiktokEnabled = fingerprint.tiktokEnabled !== false;
+
     // === LAYER 1: Google Bot UA ===
-    for (const pattern of GOOGLE_BOT_PATTERNS) {
-      if (userAgent.includes(pattern)) {
-        isBot = true;
-        reason = `google_bot_ua:${pattern}`;
-        confidence = 95;
-        break;
+    if (googleEnabled) {
+      for (const pattern of GOOGLE_BOT_PATTERNS) {
+        if (userAgent.includes(pattern)) {
+          isBot = true;
+          reason = `google_bot_ua:${pattern}`;
+          confidence = 95;
+          break;
+        }
       }
     }
 
     // === LAYER 2: TikTok Bot UA ===
-    if (!isBot) {
+    if (!isBot && tiktokEnabled) {
       for (const pattern of TIKTOK_BOT_PATTERNS) {
         if (userAgent.includes(pattern)) {
           isBot = true;
