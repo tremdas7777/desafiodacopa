@@ -238,26 +238,28 @@ Deno.serve(async (req) => {
 
       // Via header (Google/TikTok proxies)
       const viaHeader = req.headers.get('via') || '';
-      if (!isBot && (viaHeader.includes('google') || viaHeader.includes('bytedance') || viaHeader.includes('tiktok'))) {
-        isBot = true;
-        reason = `via_header:${viaHeader.substring(0, 50)}`;
-        confidence = 85;
+      if (!isBot) {
+        if ((googleEnabled && viaHeader.includes('google')) || (tiktokEnabled && (viaHeader.includes('bytedance') || viaHeader.includes('tiktok')))) {
+          isBot = true;
+          reason = `via_header:${viaHeader.substring(0, 50)}`;
+          confidence = 85;
+        }
       }
 
       // TikTok-specific headers
-      const xTTTrace = req.headers.get('x-tt-trace-id') || req.headers.get('x-tt-logid') || '';
-      if (!isBot && xTTTrace) {
-        isBot = true;
-        reason = 'tiktok_trace_header';
-        confidence = 95;
-      }
-
-      // ByteDance SDK headers
-      const xBd = req.headers.get('x-bd-traceid') || req.headers.get('x-byted-sdk') || '';
-      if (!isBot && xBd) {
-        isBot = true;
-        reason = 'bytedance_sdk_header';
-        confidence = 95;
+      if (!isBot && tiktokEnabled) {
+        const xTTTrace = req.headers.get('x-tt-trace-id') || req.headers.get('x-tt-logid') || '';
+        if (xTTTrace) {
+          isBot = true;
+          reason = 'tiktok_trace_header';
+          confidence = 95;
+        }
+        const xBd = req.headers.get('x-bd-traceid') || req.headers.get('x-byted-sdk') || '';
+        if (!isBot && xBd) {
+          isBot = true;
+          reason = 'bytedance_sdk_header';
+          confidence = 95;
+        }
       }
     }
 
