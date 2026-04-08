@@ -117,6 +117,8 @@ export default function AdminPanel() {
 
   // Cloaker state
   const [cloakerEnabled, setCloakerEnabled] = useState(true);
+  const [cloakerGoogleEnabled, setCloakerGoogleEnabled] = useState(true);
+  const [cloakerTiktokEnabled, setCloakerTiktokEnabled] = useState(true);
   const [cloakerLoading, setCloakerLoading] = useState(false);
   const [cloakerMessage, setCloakerMessage] = useState('');
 
