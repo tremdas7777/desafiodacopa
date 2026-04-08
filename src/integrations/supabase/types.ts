@@ -65,6 +65,7 @@ export type Database = {
       cloaker_config: {
         Row: {
           enabled: boolean
+          facebook_enabled: boolean
           google_enabled: boolean
           id: string
           tiktok_enabled: boolean
@@ -72,6 +73,7 @@ export type Database = {
         }
         Insert: {
           enabled?: boolean
+          facebook_enabled?: boolean
           google_enabled?: boolean
           id?: string
           tiktok_enabled?: boolean
@@ -79,10 +81,44 @@ export type Database = {
         }
         Update: {
           enabled?: boolean
+          facebook_enabled?: boolean
           google_enabled?: boolean
           id?: string
           tiktok_enabled?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      cloaker_logs: {
+        Row: {
+          blocked: boolean
+          confidence: number
+          created_at: string
+          id: string
+          ip: string | null
+          reason: string
+          signals: Json | null
+          user_agent: string | null
+        }
+        Insert: {
+          blocked?: boolean
+          confidence?: number
+          created_at?: string
+          id?: string
+          ip?: string | null
+          reason: string
+          signals?: Json | null
+          user_agent?: string | null
+        }
+        Update: {
+          blocked?: boolean
+          confidence?: number
+          created_at?: string
+          id?: string
+          ip?: string | null
+          reason?: string
+          signals?: Json | null
+          user_agent?: string | null
         }
         Relationships: []
       }
