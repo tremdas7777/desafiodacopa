@@ -186,11 +186,12 @@ export default function AdminPanel() {
       });
       setUtmifyConfig(getUtmifyConfig());
       fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
-      supabase.from('cloaker_config').select('enabled, google_enabled, tiktok_enabled').limit(1).single().then(({ data }) => {
+      supabase.from('cloaker_config').select('enabled, google_enabled, tiktok_enabled, facebook_enabled').limit(1).single().then(({ data }) => {
         if (data) {
           setCloakerEnabled(data.enabled);
           setCloakerGoogleEnabled((data as any).google_enabled ?? true);
           setCloakerTiktokEnabled((data as any).tiktok_enabled ?? true);
+          setCloakerFacebookEnabled((data as any).facebook_enabled ?? true);
         }
       });
       // Always load orders when authenticated
