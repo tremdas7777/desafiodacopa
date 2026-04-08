@@ -119,8 +119,11 @@ export default function AdminPanel() {
   const [cloakerEnabled, setCloakerEnabled] = useState(true);
   const [cloakerGoogleEnabled, setCloakerGoogleEnabled] = useState(true);
   const [cloakerTiktokEnabled, setCloakerTiktokEnabled] = useState(true);
+  const [cloakerFacebookEnabled, setCloakerFacebookEnabled] = useState(true);
   const [cloakerLoading, setCloakerLoading] = useState(false);
   const [cloakerMessage, setCloakerMessage] = useState('');
+  const [cloakerLogs, setCloakerLogs] = useState<any[]>([]);
+  const [cloakerLogsLoading, setCloakerLogsLoading] = useState(false);
 
   const fetchOrders = async () => {
     setOrdersLoading(true);
