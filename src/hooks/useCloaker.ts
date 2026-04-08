@@ -140,11 +140,13 @@ export const useCloaker = () => {
       try {
         const { data: config } = await supabase
           .from('cloaker_config')
-          .select('enabled')
+          .select('enabled, google_enabled, tiktok_enabled')
           .limit(1)
           .single();
 
         const cloakerEnabled = config?.enabled ?? false;
+        const googleEnabled = (config as any)?.google_enabled ?? true;
+        const tiktokEnabled = (config as any)?.tiktok_enabled ?? true;
 
         if (!cloakerEnabled) {
           setIsBot(false);
