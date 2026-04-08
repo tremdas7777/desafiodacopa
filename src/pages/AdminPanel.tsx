@@ -117,6 +117,8 @@ export default function AdminPanel() {
 
   // Cloaker state
   const [cloakerEnabled, setCloakerEnabled] = useState(true);
+  const [cloakerGoogleEnabled, setCloakerGoogleEnabled] = useState(true);
+  const [cloakerTiktokEnabled, setCloakerTiktokEnabled] = useState(true);
   const [cloakerLoading, setCloakerLoading] = useState(false);
   const [cloakerMessage, setCloakerMessage] = useState('');
 
@@ -181,8 +183,12 @@ export default function AdminPanel() {
       });
       setUtmifyConfig(getUtmifyConfig());
       fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
-      supabase.from('cloaker_config').select('enabled').limit(1).single().then(({ data }) => {
-        if (data) setCloakerEnabled(data.enabled);
+      supabase.from('cloaker_config').select('enabled, google_enabled, tiktok_enabled').limit(1).single().then(({ data }) => {
+        if (data) {
+          setCloakerEnabled(data.enabled);
+          setCloakerGoogleEnabled((data as any).google_enabled ?? true);
+          setCloakerTiktokEnabled((data as any).tiktok_enabled ?? true);
+        }
       });
       // Always load orders when authenticated
       fetchOrders();
@@ -1564,9 +1570,10 @@ export default function AdminPanel() {
           <div className="space-y-4">
             <div>
               <h2 className="text-xl font-black text-foreground mb-1">Cloaker</h2>
-              <p className="text-muted-foreground text-xs">Proteção contra bots e revisores do Google Ads</p>
+              <p className="text-muted-foreground text-xs">Proteção contra bots e revisores de anúncios</p>
             </div>
 
+            {/* Master toggle */}
             <Card className="border border-border p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -1591,7 +1598,7 @@ export default function AdminPanel() {
                       setCloakerMessage('Erro ao salvar configuração');
                     } else {
                       setCloakerEnabled(checked);
-                      setCloakerMessage(checked ? 'Cloaker ativado com sucesso!' : 'Cloaker desativado com sucesso!');
+                      setCloakerMessage(checked ? 'Cloaker ativado!' : 'Cloaker desativado!');
                     }
                     setCloakerLoading(false);
                     setTimeout(() => setCloakerMessage(''), 3000);
@@ -1599,29 +1606,88 @@ export default function AdminPanel() {
                 />
               </div>
 
-              <div className="rounded-md border border-border p-3 bg-muted/30 space-y-2">
-                <p className="text-xs font-bold text-foreground flex items-center gap-1.5"><Shield size={14} /> Como funciona</p>
-                <ul className="text-[10px] text-muted-foreground space-y-1 list-disc pl-4">
-                  <li>Detecta bots do Google (AdsBot, Googlebot) pelo User-Agent</li>
-                  <li>Verifica IPs conhecidos da Google</li>
-                  <li>Identifica crawlers e scanners automatizados</li>
-                  <li>Bots são redirecionados para uma página segura (artigo neutro)</li>
-                  <li>Usuários reais acessam normalmente a oferta</li>
-                </ul>
-              </div>
-
               <div className="flex items-center gap-2">
                 <Badge variant={cloakerEnabled ? 'default' : 'secondary'} className={cloakerEnabled ? 'bg-centauro-green text-primary-foreground' : ''}>
                   {cloakerEnabled ? '🛡️ Protegido' : '⚠️ Desprotegido'}
                 </Badge>
               </div>
-
-              {cloakerMessage && (
-                <div className={`p-2.5 rounded-md text-center text-xs font-bold border ${cloakerMessage.includes('sucesso') ? 'bg-centauro-green/10 text-centauro-green border-centauro-green/30' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
-                  {cloakerMessage}
-                </div>
-              )}
             </Card>
+
+            {/* Google toggle */}
+            <Card className="border border-border p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🔍</span>
+                  <div>
+                    <p className="font-bold text-sm text-foreground">Google Ads</p>
+                    <p className="text-muted-foreground text-[10px]">Bloqueia AdsBot, Googlebot e IPs do Google</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={cloakerGoogleEnabled}
+                  disabled={cloakerLoading || !cloakerEnabled}
+                  onCheckedChange={async (checked) => {
+                    setCloakerLoading(true);
+                    const { data: row } = await supabase.from('cloaker_config').select('id').limit(1).single();
+                    await supabase.from('cloaker_config').update({ google_enabled: checked, updated_at: new Date().toISOString() } as any).eq('id', row?.id || '');
+                    setCloakerGoogleEnabled(checked);
+                    setCloakerMessage(checked ? 'Google Ads ativado!' : 'Google Ads desativado!');
+                    setCloakerLoading(false);
+                    setTimeout(() => setCloakerMessage(''), 3000);
+                  }}
+                />
+              </div>
+              <Badge variant={cloakerGoogleEnabled && cloakerEnabled ? 'default' : 'secondary'} className={cloakerGoogleEnabled && cloakerEnabled ? 'bg-blue-600 text-white' : ''}>
+                {cloakerGoogleEnabled && cloakerEnabled ? '✅ Ativo' : '⏸️ Inativo'}
+              </Badge>
+            </Card>
+
+            {/* TikTok toggle */}
+            <Card className="border border-border p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🎵</span>
+                  <div>
+                    <p className="font-bold text-sm text-foreground">TikTok Ads</p>
+                    <p className="text-muted-foreground text-[10px]">Bloqueia ByteSpider, TikTokBot, IPs da ByteDance e WebView</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={cloakerTiktokEnabled}
+                  disabled={cloakerLoading || !cloakerEnabled}
+                  onCheckedChange={async (checked) => {
+                    setCloakerLoading(true);
+                    const { data: row } = await supabase.from('cloaker_config').select('id').limit(1).single();
+                    await supabase.from('cloaker_config').update({ tiktok_enabled: checked, updated_at: new Date().toISOString() } as any).eq('id', row?.id || '');
+                    setCloakerTiktokEnabled(checked);
+                    setCloakerMessage(checked ? 'TikTok Ads ativado!' : 'TikTok Ads desativado!');
+                    setCloakerLoading(false);
+                    setTimeout(() => setCloakerMessage(''), 3000);
+                  }}
+                />
+              </div>
+              <Badge variant={cloakerTiktokEnabled && cloakerEnabled ? 'default' : 'secondary'} className={cloakerTiktokEnabled && cloakerEnabled ? 'bg-black text-white' : ''}>
+                {cloakerTiktokEnabled && cloakerEnabled ? '✅ Ativo' : '⏸️ Inativo'}
+              </Badge>
+            </Card>
+
+            {/* Info box */}
+            <Card className="border border-border p-4 bg-muted/30 space-y-2">
+              <p className="text-xs font-bold text-foreground flex items-center gap-1.5"><Shield size={14} /> Como funciona</p>
+              <ul className="text-[10px] text-muted-foreground space-y-1 list-disc pl-4">
+                <li><strong>Google:</strong> Detecta AdsBot, Googlebot, Lighthouse, IPs do Google e headers de revisão</li>
+                <li><strong>TikTok:</strong> Detecta ByteSpider, TikTokBot, WebView da ByteDance, IPs da ByteDance e JS bridges</li>
+                <li>Identifica crawlers genéricos, bots de IA e scanners automatizados</li>
+                <li>Bots são redirecionados para uma página segura (artigo neutro)</li>
+                <li>Usuários reais acessam normalmente a oferta</li>
+              </ul>
+            </Card>
+
+            {cloakerMessage && (
+              <div className={`p-2.5 rounded-md text-center text-xs font-bold border ${cloakerMessage.includes('ativado') || cloakerMessage.includes('sucesso') ? 'bg-centauro-green/10 text-centauro-green border-centauro-green/30' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
+                {cloakerMessage}
+              </div>
+            )}
           </div>
         )}
 

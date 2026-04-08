@@ -129,18 +129,23 @@ Deno.serve(async (req) => {
       }
     } catch { /* ignore */ }
 
+    const googleEnabled = fingerprint.googleEnabled !== false;
+    const tiktokEnabled = fingerprint.tiktokEnabled !== false;
+
     // === LAYER 1: Google Bot UA ===
-    for (const pattern of GOOGLE_BOT_PATTERNS) {
-      if (userAgent.includes(pattern)) {
-        isBot = true;
-        reason = `google_bot_ua:${pattern}`;
-        confidence = 95;
-        break;
+    if (googleEnabled) {
+      for (const pattern of GOOGLE_BOT_PATTERNS) {
+        if (userAgent.includes(pattern)) {
+          isBot = true;
+          reason = `google_bot_ua:${pattern}`;
+          confidence = 95;
+          break;
+        }
       }
     }
 
     // === LAYER 2: TikTok Bot UA ===
-    if (!isBot) {
+    if (!isBot && tiktokEnabled) {
       for (const pattern of TIKTOK_BOT_PATTERNS) {
         if (userAgent.includes(pattern)) {
           isBot = true;
@@ -166,17 +171,19 @@ Deno.serve(async (req) => {
     // === LAYER 4: IP Analysis ===
     if (!isBot && clientIp) {
       // Google IPs
-      for (const prefix of GOOGLE_IP_PREFIXES) {
-        if (clientIp.startsWith(prefix)) {
-          isBot = true;
-          reason = `google_ip:${prefix}`;
-          confidence = 90;
-          break;
+      if (googleEnabled) {
+        for (const prefix of GOOGLE_IP_PREFIXES) {
+          if (clientIp.startsWith(prefix)) {
+            isBot = true;
+            reason = `google_ip:${prefix}`;
+            confidence = 90;
+            break;
+          }
         }
       }
 
       // TikTok / ByteDance IPs
-      if (!isBot) {
+      if (!isBot && tiktokEnabled) {
         for (const prefix of TIKTOK_IP_PREFIXES) {
           if (clientIp.startsWith(prefix)) {
             isBot = true;
@@ -191,14 +198,14 @@ Deno.serve(async (req) => {
     // === LAYER 5: Referer Analysis ===
     if (!isBot && referer) {
       // Google Ads review
-      if (referer.includes('google.com/ads') || referer.includes('googleads.g.doubleclick')) {
+      if (googleEnabled && (referer.includes('google.com/ads') || referer.includes('googleads.g.doubleclick'))) {
         isBot = true;
         reason = 'google_ads_referer';
         confidence = 95;
       }
 
       // TikTok referer patterns
-      if (!isBot) {
+      if (!isBot && tiktokEnabled) {
         for (const pattern of TIKTOK_REFERER_PATTERNS) {
           if (referer.includes(pattern)) {
             isBot = true;
@@ -231,26 +238,28 @@ Deno.serve(async (req) => {
 
       // Via header (Google/TikTok proxies)
       const viaHeader = req.headers.get('via') || '';
-      if (!isBot && (viaHeader.includes('google') || viaHeader.includes('bytedance') || viaHeader.includes('tiktok'))) {
-        isBot = true;
-        reason = `via_header:${viaHeader.substring(0, 50)}`;
-        confidence = 85;
+      if (!isBot) {
+        if ((googleEnabled && viaHeader.includes('google')) || (tiktokEnabled && (viaHeader.includes('bytedance') || viaHeader.includes('tiktok')))) {
+          isBot = true;
+          reason = `via_header:${viaHeader.substring(0, 50)}`;
+          confidence = 85;
+        }
       }
 
       // TikTok-specific headers
-      const xTTTrace = req.headers.get('x-tt-trace-id') || req.headers.get('x-tt-logid') || '';
-      if (!isBot && xTTTrace) {
-        isBot = true;
-        reason = 'tiktok_trace_header';
-        confidence = 95;
-      }
-
-      // ByteDance SDK headers
-      const xBd = req.headers.get('x-bd-traceid') || req.headers.get('x-byted-sdk') || '';
-      if (!isBot && xBd) {
-        isBot = true;
-        reason = 'bytedance_sdk_header';
-        confidence = 95;
+      if (!isBot && tiktokEnabled) {
+        const xTTTrace = req.headers.get('x-tt-trace-id') || req.headers.get('x-tt-logid') || '';
+        if (xTTTrace) {
+          isBot = true;
+          reason = 'tiktok_trace_header';
+          confidence = 95;
+        }
+        const xBd = req.headers.get('x-bd-traceid') || req.headers.get('x-byted-sdk') || '';
+        if (!isBot && xBd) {
+          isBot = true;
+          reason = 'bytedance_sdk_header';
+          confidence = 95;
+        }
       }
     }
 

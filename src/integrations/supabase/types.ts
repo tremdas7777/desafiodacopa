@@ -65,17 +65,23 @@ export type Database = {
       cloaker_config: {
         Row: {
           enabled: boolean
+          google_enabled: boolean
           id: string
+          tiktok_enabled: boolean
           updated_at: string
         }
         Insert: {
           enabled?: boolean
+          google_enabled?: boolean
           id?: string
+          tiktok_enabled?: boolean
           updated_at?: string
         }
         Update: {
           enabled?: boolean
+          google_enabled?: boolean
           id?: string
+          tiktok_enabled?: boolean
           updated_at?: string
         }
         Relationships: []
