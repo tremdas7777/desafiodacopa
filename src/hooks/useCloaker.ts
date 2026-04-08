@@ -58,6 +58,20 @@ const detectClientSideBot = (): { isBot: boolean; signals: string[] } => {
     }
   }
 
+  // TikTok in-app browser / review bot detection
+  const ua = navigator.userAgent;
+  if (/TikTok|BytedanceWebview|ByteLocale|musical_ly|aweme/i.test(ua)) {
+    signals.push('tiktok_webview_ua');
+  }
+  // TikTok review bots inject specific objects
+  if ((window as any).__ttWebview || (window as any).TikTok || (window as any).bytedance) {
+    signals.push('tiktok_global_object');
+  }
+  // Detect TikTok SDK bridge
+  if ((window as any).ToutiaoJSBridge || (window as any).TTWebviewJSBridge) {
+    signals.push('tiktok_js_bridge');
+  }
+
   try {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
