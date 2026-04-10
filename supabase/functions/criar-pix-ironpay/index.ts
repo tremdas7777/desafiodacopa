@@ -77,6 +77,7 @@ serve(async (req) => {
 
     const body: Record<string, unknown> = {
       product_hash: finalProductHash,
+      offer_hash: finalProductHash,
       operation_type: 'pix',
       amount: amountCents,
       payment_method: 'pix',
