@@ -237,6 +237,7 @@ export type Database = {
           centurionpay_secret_key: string | null
           id: string
           ironpay_api_token: string | null
+          ironpay_product_hash: string | null
           mppagamentos_public_key: string | null
           mppagamentos_secret_key: string | null
           pagouai_public_key: string | null
@@ -257,6 +258,7 @@ export type Database = {
           centurionpay_secret_key?: string | null
           id?: string
           ironpay_api_token?: string | null
+          ironpay_product_hash?: string | null
           mppagamentos_public_key?: string | null
           mppagamentos_secret_key?: string | null
           pagouai_public_key?: string | null
@@ -277,6 +279,7 @@ export type Database = {
           centurionpay_secret_key?: string | null
           id?: string
           ironpay_api_token?: string | null
+          ironpay_product_hash?: string | null
           mppagamentos_public_key?: string | null
           mppagamentos_secret_key?: string | null
           pagouai_public_key?: string | null
