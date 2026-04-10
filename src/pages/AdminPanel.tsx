@@ -1215,6 +1215,21 @@ export default function AdminPanel() {
                   <p className="text-[9px] text-muted-foreground mt-1">IronPay → Configurações de API → Token de Acesso</p>
                 </div>
 
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Product Hash</label>
+                  <Input
+                    type="text"
+                    value={gatewayConfig.ironpay.productHash}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      ironpay: { ...prev.ironpay, productHash: e.target.value }
+                    }))}
+                    placeholder="abc123def456..."
+                    className="font-mono text-xs mt-1"
+                  />
+                  <p className="text-[9px] text-muted-foreground mt-1">IronPay → Produtos → Hash do produto (ex: Panela Antiaderente 12L)</p>
+                </div>
+
                 <Button
                   onClick={async () => {
                     await savePaymentGatewayConfig(gatewayConfig);
