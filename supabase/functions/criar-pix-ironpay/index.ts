@@ -107,14 +107,16 @@ serve(async (req) => {
     }
 
     const apiUrl = `https://api.ironpayapp.com.br/api/public/v1/transactions?api_token=${apiToken}`;
-    console.log('Calling Iron Pay API with product_hash:', finalProductHash);
+    console.log('Calling Iron Pay API with product_hash:', finalProductHash, 'body:', JSON.stringify(body));
 
+    // Try JSON first, then form-urlencoded if needed
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: new URLSearchParams(flattenForForm(body)).toString(),
     });
 
     const data = await response.json();
