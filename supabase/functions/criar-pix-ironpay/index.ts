@@ -76,7 +76,9 @@ serve(async (req) => {
     const amountCents = Math.round(amount * 100);
 
     const body: Record<string, unknown> = {
+      product_hash: finalProductHash,
       offer_hash: finalProductHash,
+      operation_type: 'pix',
       amount: amountCents,
       payment_method: 'pix',
       postback_url: webhookUrl,
