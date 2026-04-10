@@ -30,6 +30,27 @@ async function fireServerWebhooks(
   }
 }
 
+function flattenForForm(obj: Record<string, unknown>, prefix = ''): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}[${key}]` : key;
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      Object.assign(result, flattenForForm(value as Record<string, unknown>, fullKey));
+    } else if (Array.isArray(value)) {
+      value.forEach((item, i) => {
+        if (typeof item === 'object' && item !== null) {
+          Object.assign(result, flattenForForm(item as Record<string, unknown>, `${fullKey}[${i}]`));
+        } else {
+          result[`${fullKey}[${i}]`] = String(item);
+        }
+      });
+    } else if (value !== undefined && value !== null) {
+      result[fullKey] = String(value);
+    }
+  }
+  return result;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -109,12 +130,19 @@ serve(async (req) => {
     const apiUrl = `https://api.ironpayapp.com.br/api/public/v1/transactions?api_token=${apiToken}`;
     console.log('Calling Iron Pay API with product_hash:', finalProductHash);
 
+    // Build FormData for Laravel API
+    const formData = new FormData();
+    const flat = flattenForForm(body);
+    for (const [k, v] of Object.entries(flat)) {
+      formData.append(k, v);
+    }
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: formData,
     });
 
     const data = await response.json();
