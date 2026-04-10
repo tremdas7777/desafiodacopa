@@ -41,7 +41,7 @@ serve(async (req) => {
   }
 
   try {
-    const { apiToken, amount, buyerName, buyerEmail, buyerDocument, buyerPhone, externalRef, metadata } = await req.json();
+    const { apiToken, productHash, amount, buyerName, buyerEmail, buyerDocument, buyerPhone, externalRef, metadata } = await req.json();
 
     if (!apiToken || !amount) {
       return new Response(JSON.stringify({ error: 'apiToken e amount são obrigatórios' }), {
@@ -54,17 +54,36 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // If no productHash provided, try to fetch from gateway_config
+    let finalProductHash = productHash || '';
+    if (!finalProductHash) {
+      const { data: gcData } = await supabase
+        .from('gateway_config')
+        .select('ironpay_product_hash')
+        .limit(1)
+        .single();
+      finalProductHash = gcData?.ironpay_product_hash || '';
+    }
+
+    if (!finalProductHash) {
+      return new Response(JSON.stringify({ error: 'Product Hash da Iron Pay não configurado. Configure no painel admin.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const webhookUrl = `${supabaseUrl}/functions/v1/payment-webhook`;
     const amountCents = Math.round(amount * 100);
 
     const body: Record<string, unknown> = {
-      offer_hash: 'tlvh7fvagm',
+      product_hash: finalProductHash,
+      operation_type: 'pix',
       amount: amountCents,
       payment_method: 'pix',
       postback_url: webhookUrl,
       cart: [
         {
-          title: 'Panela Antiaderente 12L',
+          title: 'Frete SEDEX',
           price: amountCents,
           quantity: 1,
         },
@@ -87,7 +106,7 @@ serve(async (req) => {
     }
 
     const apiUrl = `https://api.ironpayapp.com.br/api/public/v1/transactions?api_token=${apiToken}`;
-    console.log('Calling Iron Pay API...');
+    console.log('Calling Iron Pay API with product_hash:', finalProductHash);
 
     const response = await fetch(apiUrl, {
       method: 'POST',

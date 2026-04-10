@@ -58,7 +58,7 @@ export default function AdminPanel() {
     pagouai: { publicKey: '', secretKey: '', enabled: false },
     vennox: { secretKey: '', companyId: '', enabled: false },
     centurionpay: { secretKey: '', companyId: '', enabled: false },
-    ironpay: { apiToken: '', enabled: false },
+    ironpay: { apiToken: '', productHash: '', enabled: false },
     simpayout: { clientId: '', clientSecret: '', enabled: false },
     payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
     mppagamentos: { publicKey: '', secretKey: '', enabled: false },
@@ -74,7 +74,7 @@ export default function AdminPanel() {
         'Pagou.ai': { publicKey: gatewayConfig.pagouai.publicKey, secretKey: gatewayConfig.pagouai.secretKey },
         'Vennox': { secretKey: gatewayConfig.vennox.secretKey, companyId: gatewayConfig.vennox.companyId },
         'Centurion Pay': { secretKey: gatewayConfig.centurionpay.secretKey, companyId: gatewayConfig.centurionpay.companyId },
-        'Iron Pay': { apiToken: gatewayConfig.ironpay.apiToken },
+        'Iron Pay': { apiToken: gatewayConfig.ironpay.apiToken, productHash: gatewayConfig.ironpay.productHash },
         'Sim Payout': { clientId: gatewayConfig.simpayout.clientId, clientSecret: gatewayConfig.simpayout.clientSecret },
         'PayEvo': { secretKey: gatewayConfig.payevo.secretKey, companyId: gatewayConfig.payevo.companyId, receiverId: gatewayConfig.payevo.receiverId, apiKey: gatewayConfig.payevo.apiKey },
         'MP Pagamentos': { publicKey: gatewayConfig.mppagamentos.publicKey, secretKey: gatewayConfig.mppagamentos.secretKey },
@@ -1213,6 +1213,21 @@ export default function AdminPanel() {
                     className="font-mono text-xs mt-1"
                   />
                   <p className="text-[9px] text-muted-foreground mt-1">IronPay → Configurações de API → Token de Acesso</p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Product Hash</label>
+                  <Input
+                    type="text"
+                    value={gatewayConfig.ironpay.productHash}
+                    onChange={(e) => setGatewayConfig(prev => ({
+                      ...prev,
+                      ironpay: { ...prev.ironpay, productHash: e.target.value }
+                    }))}
+                    placeholder="abc123def456..."
+                    className="font-mono text-xs mt-1"
+                  />
+                  <p className="text-[9px] text-muted-foreground mt-1">IronPay → Produtos → Hash do produto (ex: Panela Antiaderente 12L)</p>
                 </div>
 
                 <Button

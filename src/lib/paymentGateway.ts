@@ -20,6 +20,7 @@ export interface CenturionPayConfig {
 
 export interface IronPayConfig {
   apiToken: string;
+  productHash: string;
   enabled: boolean;
 }
 
@@ -59,7 +60,7 @@ const defaultConfig: PaymentGatewayConfig = {
   pagouai: { publicKey: '', secretKey: '', enabled: false },
   vennox: { secretKey: '', companyId: '', enabled: false },
   centurionpay: { secretKey: '', companyId: '', enabled: false },
-  ironpay: { apiToken: '', enabled: false },
+  ironpay: { apiToken: '', productHash: '', enabled: false },
   simpayout: { clientId: '', clientSecret: '', enabled: false },
   payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
   mppagamentos: { publicKey: '', secretKey: '', enabled: false },
@@ -106,6 +107,7 @@ export async function fetchPaymentGatewayConfig(): Promise<PaymentGatewayConfig>
       },
       ironpay: {
         apiToken: (data as any).ironpay_api_token || '',
+        productHash: (data as any).ironpay_product_hash || '',
         enabled: !!((data as any).ironpay_api_token),
       },
       simpayout: {
@@ -153,6 +155,7 @@ export async function savePaymentGatewayConfig(config: PaymentGatewayConfig): Pr
       centurionpay_secret_key: config.centurionpay.secretKey,
       centurionpay_company_id: config.centurionpay.companyId,
       ironpay_api_token: config.ironpay.apiToken,
+      ironpay_product_hash: config.ironpay.productHash,
       simpayout_client_id: config.simpayout.clientId,
       simpayout_client_secret: config.simpayout.clientSecret,
       payevo_secret_key: config.payevo.secretKey,
