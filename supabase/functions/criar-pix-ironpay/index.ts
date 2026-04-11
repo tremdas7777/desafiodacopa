@@ -30,31 +30,12 @@ async function fireServerWebhooks(
   }
 }
 
-function flattenForForm(obj: Record<string, unknown>, prefix = ''): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}[${key}]` : key;
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      Object.assign(result, flattenForForm(value as Record<string, unknown>, fullKey));
-    } else if (Array.isArray(value)) {
-      value.forEach((item, i) => {
-        if (typeof item === 'object' && item !== null) {
-          Object.assign(result, flattenForForm(item as Record<string, unknown>, `${fullKey}[${i}]`));
-        } else {
-          result[`${fullKey}[${i}]`] = String(item);
-        }
-      });
-    } else if (value !== undefined && value !== null) {
-      result[fullKey] = String(value);
-    }
-  }
-  return result;
-}
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+const IRONPAY_BASE = "https://api.ironpayapp.com.br/api/public/v1";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -86,93 +67,103 @@ serve(async (req) => {
       finalProductHash = gcData?.ironpay_product_hash || '';
     }
 
-    if (!finalProductHash) {
-      return new Response(JSON.stringify({ error: 'Product Hash da Iron Pay não configurado. Configure no painel admin.' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     const webhookUrl = `${supabaseUrl}/functions/v1/payment-webhook`;
     const amountCents = Math.round(amount * 100);
 
-    const body: Record<string, unknown> = {
-      product_hash: finalProductHash,
-      offer_hash: finalProductHash,
-      operation_type: 'pix',
-      amount: amountCents,
-      payment_method: 'pix',
-      postback_url: webhookUrl,
+    const cleanCpf = buyerDocument ? buyerDocument.replace(/\D/g, '') : '';
+    const cleanPhone = buyerPhone ? buyerPhone.replace(/\D/g, '') : '';
+
+    // Build payload matching Plaud's working Iron Pay integration
+    const transactionPayload: Record<string, unknown> = {
+      api_token: apiToken,
+      offer_hash: finalProductHash || '',
+      product_hash: finalProductHash || '',
+      title: 'Frete SEDEX',
+      operation_type: '1',
       cart: [
         {
+          offer_hash: finalProductHash || '',
+          product_hash: finalProductHash || '',
           title: 'Frete SEDEX',
-          price: amountCents,
+          operation_type: '1',
           quantity: 1,
+          price: amountCents,
         },
       ],
+      payment_method: 'pix',
+      amount: amountCents,
+      postback_url: webhookUrl,
+      customer: {
+        name: buyerName || 'Cliente',
+        email: buyerEmail || 'cliente@email.com',
+        document: cleanCpf,
+        phone: cleanPhone,
+      },
     };
 
-    if (buyerName || buyerEmail || buyerDocument || buyerPhone) {
-      body.customer = {
-        ...(buyerName && { name: buyerName }),
-        ...(buyerEmail && { email: buyerEmail }),
-        ...(buyerPhone && { phone: buyerPhone.replace(/\D/g, '') }),
-        ...(buyerDocument && {
-          documents: [{ type: 'cpf', number: buyerDocument.replace(/\D/g, '') }],
-        }),
-      };
-    }
-
     if (externalRef) {
-      body.external_ref = externalRef;
+      transactionPayload.external_ref = externalRef;
     }
 
-    const apiUrl = `https://api.ironpayapp.com.br/api/public/v1/transactions?api_token=${apiToken}`;
-    console.log('Calling Iron Pay API with product_hash:', finalProductHash);
+    console.log('IronPay request payload:', JSON.stringify(transactionPayload));
 
-    // Build FormData for Laravel API
-    const formData = new FormData();
-    const flat = flattenForForm(body);
-    for (const [k, v] of Object.entries(flat)) {
-      formData.append(k, v);
-    }
-
-    const response = await fetch(apiUrl, {
+    const response = await fetch(`${IRONPAY_BASE}/transactions`, {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: formData,
+      body: JSON.stringify(transactionPayload),
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    console.log('IronPay response status:', response.status);
+    console.log('IronPay response body:', responseText);
+
+    let data: Record<string, unknown>;
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: `Resposta inválida da IronPay: ${responseText.slice(0, 200)}` }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!response.ok) {
-      console.error('IronPay error:', JSON.stringify(data));
-      return new Response(JSON.stringify({ error: 'Erro na API IronPay', details: data }), {
+      const errorMsg = (data.message as string) || (data.error as string) || `IronPay retornou status ${response.status}`;
+      console.error('IronPay error:', errorMsg, JSON.stringify(data));
+      return new Response(JSON.stringify({ error: errorMsg, details: data }), {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('IronPay success response:', JSON.stringify(data));
+    console.log('IronPay transaction created successfully');
 
-    const pixCode = data.pix?.qrcode || data.pix?.qr_code || data.pix_qr_code || data.qr_code || data.pix?.emv || '';
-    const pixQrCodeBase64 = data.pix?.qrcodeBase64 || data.pix?.qr_code_base64 || data.pix_qr_code_url || data.qr_code_url || '';
+    // Extract PIX data
+    const pixData = (data.pix as Record<string, unknown>) || {};
+    const pixCode = (pixData.pix_qr_code as string) || (data.pix_qr_code as string) || (data.qr_code as string) || (data.pix_copy_paste as string) || (data.emv as string) || '';
+    const pixQrCodeBase64 = (pixData.pix_url as string) || (data.pix_qr_code_url as string) || (data.qr_code_url as string) || '';
 
+    // Get client IP for geo
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || req.headers.get('cf-connecting-ip') || null;
     let ipCity: string | null = null;
     if (clientIp) {
-      try { const geo = await fetch(`http://ip-api.com/json/${clientIp}?fields=city,regionName,country`).then(r => r.json()); if (geo.city) ipCity = `${geo.city}, ${geo.regionName}`; } catch {}
+      try {
+        const geo = await fetch(`http://ip-api.com/json/${clientIp}?fields=city,regionName,country`).then(r => r.json());
+        if (geo.city) ipCity = `${geo.city}, ${geo.regionName}`;
+      } catch {}
     }
+
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
-      external_id: data.transaction_hash || data.id?.toString() || data.tid || externalRef || null,
+      external_id: (data.hash as string) || (data.transaction_hash as string) || data.id?.toString() || externalRef || null,
       gateway: 'ironpay',
-      status: data.status || 'pending',
+      status: (data.payment_status as string) || (data.status as string) || 'pending',
       amount_cents: amountCents,
       buyer_name: buyerName || null,
       buyer_email: buyerEmail || null,
-      buyer_document: buyerDocument ? buyerDocument.replace(/\D/g, '') : null,
+      buyer_document: cleanCpf || null,
       buyer_phone: buyerPhone || null,
       buyer_ip: clientIp,
       buyer_ip_city: ipCity,
