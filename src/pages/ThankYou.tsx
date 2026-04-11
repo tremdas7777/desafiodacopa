@@ -8,8 +8,7 @@ import UpsellPopup from '@/components/UpsellPopup';
 
 export default function ThankYou() {
   const [searchParams] = useSearchParams();
-  const originalColor = searchParams.get('cor') || 'amarela';
-  const upsellColor = originalColor === 'azul' ? 'amarela' : 'azul';
+  
   const [showConfetti, setShowConfetti] = useState(true);
   const [showUpsell, setShowUpsell] = useState(false);
   const hasTracked = useRef(false);
@@ -137,7 +136,7 @@ export default function ThankYou() {
       </div>
 
       {/* Upsell Popup */}
-      <UpsellPopup open={showUpsell} onOpenChange={setShowUpsell} shirtColor={upsellColor} />
+      <UpsellPopup open={showUpsell} onOpenChange={setShowUpsell} />
     </div>
   );
 }

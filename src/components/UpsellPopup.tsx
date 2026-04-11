@@ -8,22 +8,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import { trackEvent } from '@/lib/funnelTracking';
 import PixPopup from '@/components/PixPopup';
-import camisaAzul from '@/assets/camisa-azul.webp';
-import camisaAmarela from '@/assets/camisa-brasil-hero.webp';
+import trofeuLego from '@/assets/trofeu-lego-copa.png';
 
 interface UpsellPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  shirtColor: 'amarela' | 'azul' | string;
 }
 
 const UPSELL_AMOUNT = 29.90;
-const SIZES = ['P', 'M', 'G', 'GG'] as const;
-const COUNTDOWN_SECONDS = 300; // 5 minutes
+const COUNTDOWN_SECONDS = 300;
 
-export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPopupProps) {
-  const [selectedSize, setSelectedSize] = useState<string>('');
-  const [sizeError, setSizeError] = useState(false);
+export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPixPopup, setShowPixPopup] = useState(false);
@@ -33,22 +28,14 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
   const [buyerEmail, setBuyerEmail] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
-  const [viewerCount] = useState(() => Math.floor(Math.random() * 8) + 12); // 12-19
+  const [viewerCount] = useState(() => Math.floor(Math.random() * 8) + 12);
 
-  const isAzul = shirtColor === 'azul';
-  const shirtImage = isAzul ? camisaAzul : camisaAmarela;
-  const colorLabel = isAzul ? 'Azul' : 'Amarela';
-
-  // Countdown timer
   useEffect(() => {
     if (!open) return;
     setCountdown(COUNTDOWN_SECONDS);
     const interval = setInterval(() => {
       setCountdown(prev => {
-        if (prev <= 1) {
-          onOpenChange(false);
-          return 0;
-        }
+        if (prev <= 1) { onOpenChange(false); return 0; }
         return prev - 1;
       });
     }, 1000);
@@ -59,11 +46,6 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
   const seconds = countdown % 60;
 
   const handleAccept = async () => {
-    if (!selectedSize) {
-      setSizeError(true);
-      return;
-    }
-    setSizeError(false);
     setLoading(true);
     setError('');
 
@@ -112,11 +94,9 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
         cep: lastOrder.buyer_cep || '',
         shippingMethod: 'sedex',
         shippingCostCents: 0,
-        itemsDescription: 'Panela Antiaderente 12L',
+        itemsDescription: 'Troféu Copa do Mundo FIFA LEGO',
         isUpsell: true,
         originalOrderId: lastOrder.id,
-        shirtColor: colorLabel,
-        shirtSize: selectedSize,
       };
 
       let functionName = 'criar-pix';
@@ -183,7 +163,7 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
         >
           <DialogTitle className="sr-only">Oferta Especial</DialogTitle>
 
-          {/* Header with urgency */}
+          {/* Header */}
           <div className="bg-primary px-4 py-2.5 flex items-center justify-center gap-2">
             <Sparkles size={14} className="text-centauro-gold" />
             <span className="text-xs font-black text-primary-foreground uppercase tracking-widest">
@@ -192,7 +172,7 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
             <Sparkles size={14} className="text-centauro-gold" />
           </div>
 
-          {/* Countdown + Social proof bar */}
+          {/* Countdown + Social proof */}
           <div className="bg-destructive/90 px-4 py-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Timer size={13} className="text-primary-foreground animate-pulse" />
@@ -214,9 +194,12 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
             <div className="flex gap-4 items-center mb-4">
               <div className="w-24 h-24 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 overflow-hidden p-2 ring-2 ring-centauro-gold/30">
                 <img
-                  src={shirtImage}
-                  alt={`Camisa ${colorLabel} Seleção 2026`}
+                  src={trofeuLego}
+                  alt="Troféu Copa do Mundo FIFA LEGO"
                   className="w-full h-full object-contain"
+                  loading="lazy"
+                  width={512}
+                  height={512}
                 />
               </div>
               <div className="flex-1 min-w-0">
@@ -227,7 +210,7 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
                   </p>
                 </div>
                 <h3 className="text-sm font-black text-foreground leading-tight">
-                  Camisa {colorLabel} Seleção Brasileira 2026
+                  Troféu Oficial Copa do Mundo FIFA LEGO®
                 </h3>
                 <div className="flex items-baseline gap-2 mt-1.5">
                   <span className="text-lg font-black text-centauro-green">R$ 29,90</span>
@@ -244,38 +227,11 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
               </div>
             </div>
 
-            {/* Size Selection */}
-            <div className="mb-4">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
-                Escolha o tamanho
-              </label>
-              <div className="grid grid-cols-4 gap-2">
-                {SIZES.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => { setSelectedSize(size); setSizeError(false); }}
-                    className={`py-2.5 rounded-lg text-sm font-bold border-2 transition-all ${
-                      selectedSize === size
-                        ? 'border-centauro-green bg-centauro-green/10 text-centauro-green scale-105'
-                        : sizeError
-                          ? 'border-destructive bg-destructive/5 text-foreground'
-                          : 'border-border bg-secondary text-foreground hover:border-muted-foreground'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-              {sizeError && (
-                <p className="text-destructive text-[11px] font-semibold mt-1.5">⚠️ Selecione um tamanho para continuar</p>
-              )}
-            </div>
-
             {/* Benefits */}
             <div className="space-y-2 mb-4 bg-secondary/60 rounded-lg p-3">
               <div className="flex items-center gap-2">
                 <CheckCircle size={14} className="text-centauro-green flex-shrink-0" />
-                <span className="text-xs text-foreground font-medium">Enviada junto — sem frete adicional</span>
+                <span className="text-xs text-foreground font-medium">Enviado junto — sem frete adicional</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle size={14} className="text-centauro-green flex-shrink-0" />
@@ -283,14 +239,14 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle size={14} className="text-centauro-green flex-shrink-0" />
-                <span className="text-xs text-foreground font-medium">Oferta não disponível depois</span>
+                <span className="text-xs text-foreground font-medium">Peça colecionável edição limitada</span>
               </div>
             </div>
 
             {/* Social proof */}
             <div className="flex items-center justify-center gap-2 mb-4 bg-centauro-gold/5 rounded-lg py-2 px-3">
               <div className="flex -space-x-1.5">
-                {['🟢', '🟢', '🟢'].map((_, i) => (
+                {[0, 1, 2].map((i) => (
                   <div key={i} className="w-4 h-4 rounded-full bg-centauro-green/20 border border-background flex items-center justify-center">
                     <span className="text-[8px]">✓</span>
                   </div>
@@ -306,7 +262,7 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
               <p className="text-destructive text-xs font-semibold text-center mb-3">{error}</p>
             )}
 
-            {/* CTA - pulsing */}
+            {/* CTA */}
             <Button
               onClick={handleAccept}
               disabled={loading}
@@ -320,7 +276,7 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
               {loading ? 'Gerando PIX...' : 'SIM! Quero por R$ 29,90'}
             </Button>
 
-            {/* Decline - smaller, less visible */}
+            {/* Decline */}
             <button
               onClick={() => onOpenChange(false)}
               disabled={loading}
@@ -332,7 +288,6 @@ export default function UpsellPopup({ open, onOpenChange, shirtColor }: UpsellPo
         </DialogContent>
       </Dialog>
 
-      {/* PIX Popup for upsell payment */}
       <PixPopup
         open={showPixPopup}
         onOpenChange={setShowPixPopup}
