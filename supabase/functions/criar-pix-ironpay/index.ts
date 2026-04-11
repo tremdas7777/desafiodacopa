@@ -130,13 +130,17 @@ serve(async (req) => {
     const apiUrl = `https://api.ironpayapp.com.br/api/public/v1/transactions?api_token=${apiToken}`;
     console.log('Calling Iron Pay API with product_hash:', finalProductHash, 'body:', JSON.stringify(body));
 
+    // Build URL-encoded form data for Laravel API
+    const flat = flattenForForm(body);
+    const urlEncoded = new URLSearchParams(flat).toString();
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify(body),
+      body: urlEncoded,
     });
 
     const data = await response.json();
