@@ -8,14 +8,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import { trackEvent } from '@/lib/funnelTracking';
 import PixPopup from '@/components/PixPopup';
-import trofeuLego from '@/assets/trofeu-lego-copa.png';
+import trofeuLego from '@/assets/trofeu-lego-copa.webp';
 
 interface UpsellPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const UPSELL_AMOUNT = 29.90;
+const UPSELL_AMOUNT = 34.90;
 const COUNTDOWN_SECONDS = 300;
 
 export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
@@ -213,7 +213,7 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
                   Troféu Oficial Copa do Mundo FIFA LEGO®
                 </h3>
                 <div className="flex items-baseline gap-2 mt-1.5">
-                  <span className="text-lg font-black text-centauro-green">R$ 29,90</span>
+                  <span className="text-lg font-black text-centauro-green">R$ 34,90</span>
                   <span className="text-xs text-muted-foreground line-through">R$ 89,90</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
@@ -273,7 +273,7 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
               ) : (
                 <ShoppingBag size={16} className="mr-2" />
               )}
-              {loading ? 'Gerando PIX...' : 'SIM! Quero por R$ 29,90'}
+              {loading ? 'Gerando PIX...' : 'SIM! Quero por R$ 34,90'}
             </Button>
 
             {/* Decline */}
