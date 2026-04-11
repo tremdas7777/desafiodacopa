@@ -65,13 +65,13 @@ export default function ThankYouUpsell() {
             <Star className="text-centauro-gold" size={52} strokeWidth={2.5} fill="currentColor" />
           </div>
           <h1 className="text-2xl font-black text-foreground text-center uppercase tracking-tight">
-            Você garantiu as 2 camisas! 🔥
+            Você garantiu o Troféu LEGO®! 🔥
           </h1>
           <p className="text-muted-foreground text-center mt-2 text-sm leading-relaxed max-w-xs">
-            Ambas as camisas serão enviadas juntas no mesmo pacote. Você fez um ótimo negócio!
+            O Troféu Oficial Copa do Mundo FIFA LEGO® será enviado junto com seu pedido principal, no mesmo pacote!
           </p>
           <div className="mt-3 bg-centauro-gold/10 rounded-full px-4 py-1.5">
-            <span className="text-xs font-black text-centauro-gold uppercase">Economia total: R$ 150,00</span>
+            <span className="text-xs font-black text-centauro-gold uppercase">Economia: R$ 55,00</span>
           </div>
         </div>
 
@@ -83,7 +83,7 @@ export default function ThankYouUpsell() {
             </div>
             <div>
               <p className="font-bold text-foreground text-sm">2 pagamentos confirmados ✅</p>
-              <p className="text-muted-foreground text-xs mt-0.5">Camisa original + segunda camisa — tudo aprovado!</p>
+              <p className="text-muted-foreground text-xs mt-0.5">Pedido original + Troféu LEGO® — tudo aprovado!</p>
             </div>
           </div>
 
@@ -93,7 +93,7 @@ export default function ThankYouUpsell() {
             </div>
             <div>
               <p className="font-bold text-foreground text-sm">Pedidos sendo unificados 📦</p>
-              <p className="text-muted-foreground text-xs mt-0.5">As duas camisas serão enviadas no mesmo pacote.</p>
+              <p className="text-muted-foreground text-xs mt-0.5">O troféu será enviado junto com seu pedido principal.</p>
             </div>
           </div>
 
