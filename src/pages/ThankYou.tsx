@@ -136,7 +136,7 @@ export default function ThankYou() {
       </div>
 
       {/* Upsell Popup */}
-      <UpsellPopup open={showUpsell} onOpenChange={setShowUpsell} shirtColor={upsellColor} />
+      <UpsellPopup open={showUpsell} onOpenChange={setShowUpsell} />
     </div>
   );
 }
