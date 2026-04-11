@@ -191,39 +191,40 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
           {/* Content */}
           <div className="px-5 pt-4 pb-4">
             {/* Product image + info */}
-            <div className="flex gap-4 items-center mb-4">
-              <div className="w-28 h-28 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 overflow-hidden p-2 ring-2 ring-centauro-gold/30">
+            {/* Product image centered */}
+            <div className="flex justify-center mb-3">
+              <div className="w-36 h-36 rounded-xl flex items-center justify-center overflow-hidden p-1">
                 <img
                   src={trofeuLego}
                   alt="Troféu Copa do Mundo FIFA LEGO"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain drop-shadow-lg"
                   loading="lazy"
                   width={512}
                   height={512}
                 />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Flame size={12} className="text-destructive" />
-                  <p className="text-[10px] font-black text-destructive uppercase tracking-wider">
-                    Últimas unidades
-                  </p>
-                </div>
-                <h3 className="text-sm font-black text-foreground leading-tight">
-                  Troféu Oficial Copa do Mundo FIFA LEGO®
-                </h3>
-                <div className="flex items-baseline gap-2 mt-1.5">
-                  <span className="text-lg font-black text-centauro-green">R$ 34,90</span>
-                  <span className="text-xs text-muted-foreground line-through">R$ 89,90</span>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="inline-block text-[10px] font-bold bg-centauro-green/10 text-centauro-green px-2 py-0.5 rounded-full">
-                    67% OFF
-                  </span>
-                  <span className="inline-block text-[10px] font-bold bg-centauro-gold/10 text-centauro-gold px-2 py-0.5 rounded-full">
-                    FRETE GRÁTIS
-                  </span>
-                </div>
+            </div>
+            <div className="flex flex-col items-center text-center mb-4">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Flame size={12} className="text-destructive" />
+                <p className="text-[10px] font-black text-destructive uppercase tracking-wider">
+                  Últimas unidades
+                </p>
+              </div>
+              <h3 className="text-sm font-black text-foreground leading-tight">
+                Troféu Oficial Copa do Mundo FIFA LEGO®
+              </h3>
+              <div className="flex items-baseline gap-2 mt-1.5">
+                <span className="text-lg font-black text-centauro-green">R$ 34,90</span>
+                <span className="text-xs text-muted-foreground line-through">R$ 89,90</span>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-block text-[10px] font-bold bg-centauro-green/10 text-centauro-green px-2 py-0.5 rounded-full">
+                  61% OFF
+                </span>
+                <span className="inline-block text-[10px] font-bold bg-centauro-gold/10 text-centauro-gold px-2 py-0.5 rounded-full">
+                  FRETE GRÁTIS
+                </span>
               </div>
             </div>
 
