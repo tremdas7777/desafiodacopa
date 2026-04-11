@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchPaymentGatewayConfig } from '@/lib/paymentGateway';
 import { trackEvent } from '@/lib/funnelTracking';
 import PixPopup from '@/components/PixPopup';
-import trofeuLego from '@/assets/trofeu-lego-copa.webp';
+import trofeuLego from '@/assets/trofeu-lego-copa.png';
 
 interface UpsellPopupProps {
   open: boolean;
@@ -192,7 +192,7 @@ export default function UpsellPopup({ open, onOpenChange }: UpsellPopupProps) {
           <div className="px-5 pt-4 pb-4">
             {/* Product image + info */}
             <div className="flex gap-4 items-center mb-4">
-              <div className="w-24 h-24 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 overflow-hidden p-2 ring-2 ring-centauro-gold/30">
+              <div className="w-28 h-28 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 overflow-hidden p-2 ring-2 ring-centauro-gold/30">
                 <img
                   src={trofeuLego}
                   alt="Troféu Copa do Mundo FIFA LEGO"
